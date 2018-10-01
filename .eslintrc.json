@@ -1,0 +1,14 @@
+{
+  "env": {
+    "node": true
+  },
+  "extends": [
+    "bloq",
+    "bloq/experimental"
+  ],
+  "root": true,
+  "rules": {
+    "prefer-arrow/prefer-arrow-functions": ["warn", { "singleReturnOnly": true }],
+    "max-params": ["error", 5]
+  }
+}
