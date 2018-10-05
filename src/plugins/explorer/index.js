@@ -99,6 +99,7 @@ function start ({ config, eventBus, plugins }) {
   }
 
   function emitPendingEvents (address) {
+    debug('About to emit pending events')
     const grouped = (groupBy(
       pendingEvents.filter(e => e.address === address),
       'event.transactionHash')
@@ -335,51 +336,48 @@ function start ({ config, eventBus, plugins }) {
   function refreshTransaction (hash, address) {
     return web3.eth.getTransactionReceipt(hash)
       .then(function (receipt) {
-        if (!receipt) {
-          return
-        }
-        if (web3.utils.toChecksumAddress(receipt.from) !== address &&
-          web3.utils.toChecksumAddress(receipt.to) !== address) {
-          return
-        }
-
         // Refresh transaction
-        queueAndEmitTransaction(address)(hash)
+        if (web3.utils.toChecksumAddress(receipt.from) === address ||
+        web3.utils.toChecksumAddress(receipt.to) === address) {
+          queueAndEmitTransaction(address)(hash)
+        }
 
         // Refresh transaction events
-        registeredEvents.forEach(function (registration) {
-          const {
-            contractAddress,
-            abi,
-            eventName,
-            filter,
-            metaParser
-          } = registration(address)
+        if (receipt && receipt.logs && receipt.logs.length) {
+          registeredEvents.forEach(function (registration) {
+            const {
+              contractAddress,
+              abi,
+              eventName,
+              filter,
+              metaParser
+            } = registration(address)
 
-          const eventAbi = abi.find(e =>
-            e.type === 'event' && e.name === eventName
-          )
-          const signature = web3.eth.abi.encodeEventSignature(eventAbi)
+            const eventAbi = abi.find(e =>
+              e.type === 'event' && e.name === eventName
+            )
+            const signature = web3.eth.abi.encodeEventSignature(eventAbi)
 
-          receipt.logs.forEach(function (event) {
-            if (event.address === contractAddress &&
+            receipt.logs.forEach(function (event) {
+              if (event.address === contractAddress &&
               event.topics[0] === signature) {
-              const returnValues = web3.eth.abi.decodeLog(
-                eventAbi.inputs,
-                event.data,
-                eventAbi.anonymous ? event.topics : event.topics.slice(1)
-              )
-              if (isMatch(returnValues, filter)) {
-                queueAndEmitEvent(address, metaParser)({
-                  address: contractAddress,
-                  event: eventName,
-                  returnValues,
-                  transactionHash: hash
-                })
+                const returnValues = web3.eth.abi.decodeLog(
+                  eventAbi.inputs,
+                  event.data,
+                  eventAbi.anonymous ? event.topics : event.topics.slice(1)
+                )
+                if (isMatch(returnValues, filter)) {
+                  queueAndEmitEvent(address, metaParser)({
+                    address: contractAddress,
+                    event: eventName,
+                    returnValues,
+                    transactionHash: hash
+                  })
+                }
               }
-            }
+            })
           })
-        })
+        }
       })
   }
 
