@@ -1,6 +1,6 @@
 'use strict'
 
-const { debounce, groupBy, merge, reduce } = require('lodash')
+const { debounce, groupBy, isMatch, merge, reduce } = require('lodash')
 const debug = require('debug')('met-wallet:core:explorer')
 const pDefer = require('p-defer')
 const promiseAllProps = require('promise-all-props')
@@ -68,11 +68,6 @@ function start ({ config, eventBus, plugins }) {
       message: 'Block headers subscription failed',
       meta: { plugin: 'explorer' }
     })
-  })
-
-  eventBus.on('open-wallets', function () {
-    // TODO sync transactions
-    // TODO listen for new transactions
   })
 
   let pendingEvents = []
@@ -155,7 +150,7 @@ function start ({ config, eventBus, plugins }) {
     registeredEvents.push(registration)
   }
 
-  function syncEvents (fromBlock, address) {
+  function subscribeEvents (fromBlock, address) {
     registeredEvents.forEach(function (registration) {
       let shallResync = false
       let bestSyncBlock = fromBlock
@@ -210,7 +205,31 @@ function start ({ config, eventBus, plugins }) {
     })
   }
 
-  function syncEthTransactions (fromBlock, toBlock, address) {
+  function getPastEvents (fromBlock, toBlock, address) {
+    return Promise.all(registeredEvents.map(function (registration) {
+      const {
+        contractAddress,
+        abi,
+        eventName,
+        filter,
+        metaParser
+      } = registration(address)
+
+      const contract = new web3.eth.Contract(abi, contractAddress)
+
+      return contract.getPastEvents(eventName, {
+        fromBlock,
+        toBlock,
+        filter
+      })
+        .then(function (events) {
+          debug(`${events.length} past ${eventName} events retrieved`)
+          events.forEach(queueAndEmitEvent(address, metaParser))
+        })
+    }))
+  }
+
+  function subscribeEthTransactions (fromBlock, address) {
     let shallResync = false
     let bestSyncBlock = fromBlock
 
@@ -219,7 +238,6 @@ function start ({ config, eventBus, plugins }) {
       getTransactionStream
     } = indexer(config.explorer)
 
-    // Subscribe to incoming transactions
     getTransactionStream(address)
       .on('data', queueAndEmitTransaction(address))
       .on('resync', function () {
@@ -257,26 +275,30 @@ function start ({ config, eventBus, plugins }) {
           })
       }
     })
+  }
 
-    // Get past transactions
+  function getPastEthTransactions (fromBlock, toBlock, address) {
+    const { getTransactions } = indexer(config.explorer)
+
     return getTransactions(fromBlock, toBlock, address)
       .then(function (transactions) {
         debug(`${transactions.length} past ETH transactions retrieved`)
         transactions.forEach(queueAndEmitTransaction(address))
-        bestSyncBlock = toBlock
       })
   }
 
-  const syncTransactions = (fromBlock, address) => started
-    .then(function () {
-      debug('Syncing', fromBlock, bestBlock)
-      return Promise.all([
-        bestBlock,
-        syncEthTransactions(fromBlock, bestBlock, address),
-        syncEvents(fromBlock, address)
-      ])
-    })
-    .then(([best]) => best)
+  const syncTransactions = (fromBlock, address) =>
+    started
+      .then(function () {
+        debug('Syncing', fromBlock, bestBlock)
+        return Promise.all([
+          bestBlock,
+          getPastEthTransactions(fromBlock, bestBlock, address),
+          subscribeEthTransactions(fromBlock, address),
+          subscribeEvents(fromBlock, address)
+        ])
+      })
+      .then(([best]) => best)
 
   function logTransaction (promiEvent, from, meta) {
     // PromiEvent objects shall be wrapped to avoid the promise chain to
@@ -310,12 +332,72 @@ function start ({ config, eventBus, plugins }) {
     })
   }
 
+  function refreshTransaction (hash, address) {
+    return web3.eth.getTransactionReceipt(hash)
+      .then(function (receipt) {
+        if (!receipt) {
+          return
+        }
+        if (web3.utils.toChecksumAddress(receipt.from) !== address &&
+          web3.utils.toChecksumAddress(receipt.to) !== address) {
+          return
+        }
+
+        // Refresh transaction
+        queueAndEmitTransaction(address)(hash)
+
+        // Refresh transaction events
+        registeredEvents.forEach(function (registration) {
+          const {
+            contractAddress,
+            abi,
+            eventName,
+            filter,
+            metaParser
+          } = registration(address)
+
+          const eventAbi = abi.find(e =>
+            e.type === 'event' && e.name === eventName
+          )
+          const signature = web3.eth.abi.encodeEventSignature(eventAbi)
+
+          receipt.logs.forEach(function (event) {
+            if (event.address === contractAddress &&
+              event.topics[0] === signature) {
+              const returnValues = web3.eth.abi.decodeLog(
+                eventAbi.inputs,
+                event.data,
+                eventAbi.anonymous ? event.topics : event.topics.slice(1)
+              )
+              if (isMatch(returnValues, filter)) {
+                queueAndEmitEvent(address, metaParser)({
+                  address: contractAddress,
+                  event: eventName,
+                  returnValues,
+                  transactionHash: hash
+                })
+              }
+            }
+          })
+        })
+      })
+  }
+
+  function refreshAllTransactions (address) {
+    return Promise.all([
+      getPastEthTransactions(0, bestBlock, address),
+      getPastEvents(0, bestBlock, address)
+    ])
+  }
+
   return {
     api: {
       emitTransactions,
       logTransaction,
       registerEvent,
-      syncTransactions
+      syncTransactions,
+      refreshTransaction,
+      refreshAllTransactions
     },
     events: [
       'eth-block',
