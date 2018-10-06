@@ -1,6 +1,6 @@
 'use strict'
 
-const { debounce, groupBy, isMatch, merge, reduce } = require('lodash')
+const { debounce, groupBy, isMatch, merge, noop, reduce } = require('lodash')
 const debug = require('debug')('met-wallet:core:explorer')
 const pDefer = require('p-defer')
 const promiseAllProps = require('promise-all-props')
@@ -84,6 +84,10 @@ function start ({ config, eventBus, plugins }) {
     return metasCache[hash]
   }
 
+  function mergeDones (events) {
+    return events.map(event => event.done || noop)
+  }
+
   function emitTransactions (address, transactions) {
     eventBus.emit('wallet-state-changed', {
       // walletId is temporarily hardcoded
@@ -98,6 +102,15 @@ function start ({ config, eventBus, plugins }) {
     eventBus.emit('eth-tx')
   }
 
+  function tryEmitTransactions (address, transactions) {
+    try {
+      emitTransactions(address, transactions)
+      return null
+    } catch (err) {
+      return err
+    }
+  }
+
   function emitPendingEvents (address) {
     debug('About to emit pending events')
     const grouped = (groupBy(
@@ -108,10 +121,16 @@ function start ({ config, eventBus, plugins }) {
     Promise.all(Object.keys(grouped).map(hash => promiseAllProps({
       transaction: web3.eth.getTransaction(hash),
       receipt: web3.eth.getTransactionReceipt(hash),
-      meta: mergeEvents(hash, grouped[hash])
+      meta: mergeEvents(hash, grouped[hash]),
+      done: mergeDones(grouped[hash])
     })))
       .then(function (transactions) {
-        emitTransactions(address, transactions)
+        const err = tryEmitTransactions(address, transactions)
+        return Promise.all(transactions.map(transaction =>
+          Promise.all(transaction.done.map(done =>
+            done(err)
+          ))
+        ))
       })
       .catch(function (err) {
         eventBus.emit('wallet-error', {
@@ -131,18 +150,28 @@ function start ({ config, eventBus, plugins }) {
 
   const queueAndEmitEvent = (address, metaParser) => function (event) {
     debug('Queueing event', event.event)
-    pendingEvents.push({ address, event, metaParser })
+    const deferred = pDefer()
+    pendingEvents.push({
+      address,
+      event,
+      metaParser,
+      done: err => err ? deferred.reject(err) : deferred.resolve()
+    })
     debouncedEmitPendingEvents(address)
+    return deferred.promise
   }
 
   const queueAndEmitTransaction = (address, meta) => function (hash) {
     debug('Queueing transaction', hash)
+    const deferred = pDefer()
     pendingEvents.push({
       address,
       event: { transactionHash: hash },
-      metaParser: () => (meta || {})
+      metaParser: () => (meta || {}),
+      done: err => err ? deferred.reject(err) : deferred.resolve()
     })
     debouncedEmitPendingEvents(address)
+    return deferred.promise
   }
 
   const registeredEvents = []
@@ -225,7 +254,8 @@ function start ({ config, eventBus, plugins }) {
       })
         .then(function (events) {
           debug(`${events.length} past ${eventName} events retrieved`)
-          events.forEach(queueAndEmitEvent(address, metaParser))
+          return Promise.all(events.map(queueAndEmitEvent(address, metaParser)))
+            .then(noop)
         })
     }))
   }
@@ -284,7 +314,8 @@ function start ({ config, eventBus, plugins }) {
     return getTransactions(fromBlock, toBlock, address)
       .then(function (transactions) {
         debug(`${transactions.length} past ETH transactions retrieved`)
-        transactions.forEach(queueAndEmitTransaction(address))
+        return Promise.all(transactions.map(queueAndEmitTransaction(address)))
+          .then(noop)
       })
   }
 
@@ -336,10 +367,12 @@ function start ({ config, eventBus, plugins }) {
   function refreshTransaction (hash, address) {
     return web3.eth.getTransactionReceipt(hash)
       .then(function (receipt) {
+        const pending = []
+
         // Refresh transaction
         if (web3.utils.toChecksumAddress(receipt.from) === address ||
-        web3.utils.toChecksumAddress(receipt.to) === address) {
-          queueAndEmitTransaction(address)(hash)
+          web3.utils.toChecksumAddress(receipt.to) === address) {
+          pending.push(queueAndEmitTransaction(address)(hash))
         }
 
         // Refresh transaction events
@@ -367,17 +400,20 @@ function start ({ config, eventBus, plugins }) {
                   eventAbi.anonymous ? event.topics : event.topics.slice(1)
                 )
                 if (isMatch(returnValues, filter)) {
-                  queueAndEmitEvent(address, metaParser)({
+                  pending.push(queueAndEmitEvent(address, metaParser)({
                     address: contractAddress,
                     event: eventName,
                     returnValues,
                     transactionHash: hash
-                  })
+                  }))
                 }
               }
             })
           })
         }
+
+        return Promise.all(pending)
+          .then(noop)
       })
   }
 
@@ -390,7 +426,6 @@ function start ({ config, eventBus, plugins }) {
 
   return {
     api: {
-      emitTransactions,
       logTransaction,
       registerEvent,
       syncTransactions,

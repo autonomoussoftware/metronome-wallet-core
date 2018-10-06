@@ -8,6 +8,7 @@
   ],
   "root": true,
   "rules": {
+    "complexity": ["error", 10],
     "max-params": ["error", 4]
   }
 }
