@@ -197,4 +197,53 @@ describe('Explorer plugin', function () {
       .then(end)
       .catch(end)
   })
+
+  it('should skip refreshing an unconfirmed tx', function (done) {
+    const end = once(function (err) {
+      if (err) {
+        done(err)
+        return
+      }
+      explorer.stop()
+      done()
+    })
+
+    const eventBus = new EventEmitter()
+
+    const hash = randomTxId()
+    const address = randomAddress()
+
+    const transaction = {
+      gasPrice: 0,
+      hash,
+      value: 0
+    }
+    const receipt = null
+
+    eventBus.on('wallet-error', function (err) {
+      end(new Error(err.message))
+    })
+    eventBus.on('wallet-state-changed', function () {
+      end(new Error('Should not have received an update'))
+    })
+
+    const responses = {
+      eth_getBlockByNumber: () => 0,
+      eth_getTransactionByHash (_hash) {
+        _hash.should.equal(hash)
+        return transaction
+      },
+      eth_getTransactionReceipt (_hash) {
+        _hash.should.equal(hash)
+        return receipt
+      }
+    }
+    const plugins = { eth: { web3Provider: new MockProvider(responses) } }
+
+    const { api } = explorer.start({ config, eventBus, plugins })
+
+    api.refreshTransaction(hash, address)
+      .then(end)
+      .catch(end)
+  })
 })

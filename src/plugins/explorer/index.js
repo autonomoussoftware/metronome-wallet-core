@@ -367,6 +367,11 @@ function start ({ config, eventBus, plugins }) {
   function refreshTransaction (hash, address) {
     return web3.eth.getTransactionReceipt(hash)
       .then(function (receipt) {
+        // Skip unconfirmed transactions
+        if (!receipt) {
+          return Promise.resolve()
+        }
+
         const pending = []
 
         // Refresh transaction
@@ -376,7 +381,7 @@ function start ({ config, eventBus, plugins }) {
         }
 
         // Refresh transaction events
-        if (receipt && receipt.logs && receipt.logs.length) {
+        if (receipt.logs && receipt.logs.length) {
           registeredEvents.forEach(function (registration) {
             const {
               contractAddress,
