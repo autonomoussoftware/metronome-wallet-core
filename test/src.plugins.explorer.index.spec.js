@@ -22,14 +22,12 @@ describe('Explorer plugin', function () {
     const end = once(function (err) {
       if (err) {
         done(err)
-        return
-      }
-      if (!stateChanged) {
+      } else if (stateChanged === false) {
         done(new Error('State not changed'))
-        return
+      } else {
+        done()
       }
       explorer.stop()
-      done()
     })
 
     const eventBus = new EventEmitter()
@@ -100,14 +98,12 @@ describe('Explorer plugin', function () {
     const end = once(function (err) {
       if (err) {
         done(err)
-        return
-      }
-      if (!stateChanged) {
+      } else if (stateChanged === false) {
         done(new Error('State not changed'))
-        return
+      } else {
+        done()
       }
       explorer.stop()
-      done()
     })
 
     const eventBus = new EventEmitter()
@@ -200,12 +196,8 @@ describe('Explorer plugin', function () {
 
   it('should skip refreshing an unconfirmed tx', function (done) {
     const end = once(function (err) {
-      if (err) {
-        done(err)
-        return
-      }
+      done(err)
       explorer.stop()
-      done()
     })
 
     const eventBus = new EventEmitter()
