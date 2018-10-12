@@ -113,10 +113,12 @@ function start ({ config, eventBus, plugins }) {
 
   function emitPendingEvents (address) {
     debug('About to emit pending events')
-    const grouped = (groupBy(
-      pendingEvents.filter(e => e.address === address),
-      'event.transactionHash')
-    )
+
+    const eventsToEmit = pendingEvents.filter(e => e.address === address)
+    const eventsToKeep = pendingEvents.filter(e => e.address !== address)
+    pendingEvents = eventsToKeep
+
+    const grouped = (groupBy(eventsToEmit, 'event.transactionHash'))
 
     Promise.all(Object.keys(grouped).map(hash => promiseAllProps({
       transaction: web3.eth.getTransaction(hash),
@@ -138,9 +140,10 @@ function start ({ config, eventBus, plugins }) {
           message: 'Could not emit event transaction',
           meta: { plugin: 'tokens' }
         })
+        eventsToEmit.forEach(function (event) {
+          event.done(err)
+        })
       })
-
-    pendingEvents = pendingEvents.filter(e => e.address !== address)
   }
 
   const debouncedEmitPendingEvents = debounce(

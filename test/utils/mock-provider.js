@@ -6,11 +6,18 @@ function MockProvider (responses, delay = 50) {
 }
 
 MockProvider.prototype.send = function (payload, callback) {
-  setTimeout(() => callback(null, {
-    id: payload.id,
-    jsonrpc: '2.0',
-    result: this._responses[payload.method](...payload.params)
-  }), this._delay)
+  // eslint-disable-next-line arrow-body-style
+  setTimeout(() => {
+    try {
+      callback(null, {
+        id: payload.id,
+        jsonrpc: '2.0',
+        result: this._responses[payload.method](...payload.params)
+      })
+    } catch (err) {
+      callback(err)
+    }
+  }, this._delay)
 }
 
 module.exports = MockProvider

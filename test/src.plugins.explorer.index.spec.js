@@ -238,4 +238,76 @@ describe('Explorer plugin', function () {
       .then(end)
       .catch(end)
   })
+
+  it('should return a rejected promise if an error happens', function (done) {
+    let stateChanged = false
+    let errorFired = false
+
+    const end = once(function (err) {
+      if (err) {
+        done(err)
+      } else if (stateChanged) {
+        done(new Error('State changed'))
+      } else if (errorFired === false) {
+        done(new Error('Error not fired'))
+      } else {
+        done()
+      }
+      explorer.stop()
+    })
+
+    const eventBus = new EventEmitter()
+
+    const hash = randomTxId()
+    const address = randomAddress()
+    const toAddress = randomAddress()
+    const contractAddress = randomAddress()
+    const tokenValue = '1'
+
+    const logs = [{
+      transactionHash: hash,
+      address: contractAddress,
+      data: web3.eth.abi.encodeParameters(['uint256'], [tokenValue]),
+      topics: [
+        web3.eth.abi.encodeEventSignature('Transfer(address,address,uint256)'),
+        web3.eth.abi.encodeParameter('address', address),
+        web3.eth.abi.encodeParameter('address', toAddress)
+      ]
+    }]
+    const receipt = {
+      from: address,
+      logs,
+      to: contractAddress
+    }
+
+    eventBus.on('wallet-error', function () {
+      errorFired = true
+    })
+    eventBus.on('wallet-state-changed', function () {
+      stateChanged = true
+    })
+
+    const responses = {
+      eth_getBlockByNumber: () => 0,
+      eth_getTransactionByHash (_hash) {
+        _hash.should.equal(hash)
+        throw new Error('Fake get transaction error')
+      },
+      eth_getTransactionReceipt (_hash) {
+        _hash.should.equal(hash)
+        return receipt
+      }
+    }
+    const plugins = { eth: { web3Provider: new MockProvider(responses) } }
+
+    const { api } = explorer.start({ config, eventBus, plugins })
+
+    const { getEventDataCreators } = require('../src/plugins/tokens/events')
+
+    getEventDataCreators(contractAddress).map(api.registerEvent)
+
+    api.refreshTransaction(hash, address).should.be.rejectedWith('Fake')
+      .then(() => end())
+      .catch(end)
+  })
 })
