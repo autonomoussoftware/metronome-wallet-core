@@ -326,11 +326,12 @@ function start ({ config, eventBus, plugins }) {
     started
       .then(function () {
         debug('Syncing', fromBlock, bestBlock)
+        subscribeEthTransactions(bestBlock, address)
+        subscribeEvents(bestBlock, address)
         return Promise.all([
           bestBlock,
           getPastEthTransactions(fromBlock, bestBlock, address),
-          subscribeEthTransactions(fromBlock, address),
-          subscribeEvents(fromBlock, address)
+          getPastEvents(fromBlock, bestBlock, address)
         ])
       })
       .then(([best]) => best)
