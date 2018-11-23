@@ -18,7 +18,7 @@ function start ({ config, eventBus }) {
       eventBus.emit('wallet-error', {
         inner: err,
         message: err.message || 'Could not get chain ID',
-        meta: { plugin: 'wallet' }
+        meta: { plugin: 'eth' }
       })
     })
 

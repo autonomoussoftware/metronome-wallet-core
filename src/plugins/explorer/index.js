@@ -138,7 +138,7 @@ function start ({ config, eventBus, plugins }) {
         eventBus.emit('wallet-error', {
           inner: err,
           message: 'Could not emit event transaction',
-          meta: { plugin: 'tokens' }
+          meta: { plugin: 'explorer' }
         })
         eventsToEmit.forEach(function (event) {
           event.done(err)

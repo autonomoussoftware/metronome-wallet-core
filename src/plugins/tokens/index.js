@@ -73,7 +73,7 @@ function start ({ config, eventBus, plugins }) {
           eventBus.emit('wallet-error', {
             inner: err,
             message: `Could not get ${symbol} token balance`,
-            meta: { plugin: 'wallet' }
+            meta: { plugin: 'tokens' }
           })
         })
     })
