@@ -13,7 +13,7 @@ function start ({ config, eventBus }) {
 
   const throttledEmitPrice = throttle(
     emitPrice,
-    config.rates.updateMs,
+    config.ratesUpdateMs,
     { leading: true, trailing: false }
   )
 

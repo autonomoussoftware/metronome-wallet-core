@@ -148,7 +148,7 @@ function start ({ config, eventBus, plugins }) {
 
   const debouncedEmitPendingEvents = debounce(
     emitPendingEvents,
-    config.explorer.debounce
+    config.explorerDebounce
   )
 
   const queueAndEmitEvent = (address, metaParser) => function (event) {
@@ -270,7 +270,7 @@ function start ({ config, eventBus, plugins }) {
     const {
       getTransactions,
       getTransactionStream
-    } = indexer(config.explorer)
+    } = indexer(config)
 
     getTransactionStream(address)
       .on('data', queueAndEmitTransaction(address))
@@ -312,7 +312,7 @@ function start ({ config, eventBus, plugins }) {
   }
 
   function getPastEthTransactions (fromBlock, toBlock, address) {
-    const { getTransactions } = indexer(config.explorer)
+    const { getTransactions } = indexer(config)
 
     return getTransactions(fromBlock, toBlock, address)
       .then(function (transactions) {
@@ -402,7 +402,7 @@ function start ({ config, eventBus, plugins }) {
 
             receipt.logs.forEach(function (event) {
               if (event.address === contractAddress &&
-              event.topics[0] === signature) {
+                event.topics[0] === signature) {
                 const returnValues = web3.eth.abi.decodeLog(
                   eventAbi.inputs,
                   event.data,

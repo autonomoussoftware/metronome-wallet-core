@@ -12,7 +12,7 @@ function start ({ config, eventBus }) {
 
   web3 = createWeb3(config)
 
-  checkChainId(web3, config.eth.chain)
+  checkChainId(web3, config.chainId)
     .then(match => !match && Promise.reject(new Error('Wrong chain')))
     .catch(function (err) {
       eventBus.emit('wallet-error', {
