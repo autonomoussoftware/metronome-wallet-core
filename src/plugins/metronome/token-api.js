@@ -7,11 +7,15 @@ function addAccount (web3, privateKey) {
     .add(web3.eth.accounts.privateKeyToAccount(privateKey))
 }
 
+function getNextNonce (web3, from) {
+  return web3.eth.getTransactionCount(from, 'pending')
+}
+
 function sendMet (web3, chain, logTransaction, metaParsers) {
   const { metToken } = new MetronomeContracts(web3, chain)
   return function (privateKey, { gasPrice, gas, from, to, value }) {
     addAccount(web3, privateKey)
-    return web3.eth.getTransactionCount(from, 'pending')
+    return getNextNonce(web3, from)
       .then(nonce =>
         logTransaction(
           metToken.methods.transfer(to, value)
@@ -26,6 +30,43 @@ function sendMet (web3, chain, logTransaction, metaParsers) {
   }
 }
 
+function exportMet (web3, chain, logTransaction, metaParsers) {
+  const { metToken } = new MetronomeContracts(web3, chain)
+  return function (privateKey, params) {
+    const {
+      destChain,
+      destMetAddr,
+      extraData,
+      fee,
+      from,
+      gas,
+      gasPrice,
+      to,
+      value
+    } = params
+    addAccount(web3, privateKey)
+    return getNextNonce(web3, from)
+      .then(nonce =>
+        logTransaction(
+          metToken.methods.export(
+            destChain,
+            destMetAddr,
+            to,
+            value,
+            fee,
+            extraData
+          )
+            .send({ from, gasPrice, gas, nonce }),
+          from,
+          metaParsers.export({
+            /* TODO syntetic log to get tx into the list on send */
+          })
+        )
+      )
+  }
+}
+
 module.exports = {
+  exportMet,
   sendMet
 }

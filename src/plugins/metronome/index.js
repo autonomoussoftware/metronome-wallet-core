@@ -18,6 +18,7 @@ const getAuctionStatus = require('./auction-status')
 const getConverterStatus = require('./converter-status')
 const auctionEvents = require('./auction-events')
 const converterEvents = require('./converter-events')
+const porterEvents = require('./porter-events')
 
 function start ({ config, eventBus, plugins }) {
   debug.enabled = config.debug
@@ -31,8 +32,11 @@ function start ({ config, eventBus, plugins }) {
     symbol: 'MET'
   })
 
-  converterEvents.getEventDataCreator(chainId)
+  const events = []
+  events
     .concat(auctionEvents.getEventDataCreator(chainId))
+    .concat(converterEvents.getEventDataCreator(chainId))
+    .concat(porterEvents.getEventDataCreator(chainId))
     .forEach(explorer.registerEvent)
 
   const web3 = new Web3(eth.web3Provider)
@@ -63,7 +67,8 @@ function start ({ config, eventBus, plugins }) {
   const metaParsers = Object.assign(
     {
       auction: auctionEvents.auctionMetaParser,
-      converter: converterEvents.converterMetaParser
+      converter: converterEvents.converterMetaParser,
+      export: porterEvents.exportMetaParser
     },
     tokens.metaParsers
   )
@@ -87,6 +92,7 @@ function start ({ config, eventBus, plugins }) {
         explorer.logTransaction,
         metaParsers
       ),
+      exportMet: sendMet(web3, chainId, explorer.logTransaction, metaParsers),
       getAuctionGasLimit: estimateAuctionGas(web3, chainId),
       getConvertEthEstimate: getEthToMetEstimate(web3, chainId),
       getConvertEthGasLimit: estimateEthToMetGas(web3, chainId),
