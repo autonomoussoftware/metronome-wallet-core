@@ -1,30 +1,34 @@
 'use strict'
 
 const { CookieJar } = require('tough-cookie')
-const axios = require('axios')
+const createAxios = require('axios').create
 const axiosCookieJarSupport = require('axios-cookiejar-support').default
 const debug = require('debug')('met-wallet:core:explorer:indexer')
 const delay = require('delay')
 const EventEmitter = require('events')
 const io = require('socket.io-client')
 
-axiosCookieJarSupport(axios)
+function createIndexer ({ debug: enableDebug, indexerUrl }) {
+  debug.enabled = enableDebug
 
-function createIndexer ({ debug: _debug, indexerUrl }) {
-  debug.enabled = _debug
+  const jar = new CookieJar()
+
+  const axios = createAxios({
+    baseURL: indexerUrl,
+    jar,
+    withCredentials: true
+  })
+
+  axiosCookieJarSupport(axios)
 
   const getTransactions = (fromBlock, toBlock, address) =>
-    axios({
-      baseURL: indexerUrl,
-      url: `/addresses/${address}/transactions`,
+    axios(`/addresses/${address}/transactions`, {
       params: { from: fromBlock, to: toBlock }
     })
       .then(res => res.data)
 
-  const jar = new CookieJar()
-
   const getSocket = baseURL =>
-    axios.get(baseURL, { jar, withCredentials: true })
+    axios.get('/blocks/best')
       .then(() =>
         io(`${baseURL}/v1`, {
           autoConnect: false,
