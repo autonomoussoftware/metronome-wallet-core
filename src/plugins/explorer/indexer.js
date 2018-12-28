@@ -1,19 +1,42 @@
 'use strict'
 
+const { CookieJar } = require('tough-cookie')
 const axios = require('axios')
+const axiosCookieJarSupport = require('axios-cookiejar-support').default
+const debug = require('debug')('met-wallet:core:explorer:indexer')
+const delay = require('delay')
 const EventEmitter = require('events')
 const io = require('socket.io-client')
 
-const getSocket = baseURL =>
-  Promise.resolve(io(`${baseURL}/v1`, { autoConnect: false }))
+axiosCookieJarSupport(axios)
 
-function createIndexer ({ indexerUrl }) {
-  const getTransactions = (fromBlock, toBlock, address) => axios({
-    baseURL: indexerUrl,
-    url: `/addresses/${address}/transactions`,
-    params: { from: fromBlock, to: toBlock }
-  })
-    .then(res => res.data)
+function createIndexer ({ debug: _debug, indexerUrl }) {
+  debug.enabled = _debug
+
+  const getTransactions = (fromBlock, toBlock, address) =>
+    axios({
+      baseURL: indexerUrl,
+      url: `/addresses/${address}/transactions`,
+      params: { from: fromBlock, to: toBlock }
+    })
+      .then(res => res.data)
+
+  const jar = new CookieJar()
+
+  const getSocket = baseURL =>
+    axios.get(baseURL, { jar, withCredentials: true })
+      .then(() =>
+        io(`${baseURL}/v1`, {
+          autoConnect: false,
+          extraHeaders: { Cookie: jar.getCookiesSync(baseURL).join(';') }
+        })
+      )
+      .catch(function (err) {
+        debug('Failed to get indexer cookie', err.message)
+
+        return delay(5000)
+          .then(getSocket)
+      })
 
   function getTransactionStream (address) {
     const stream = new EventEmitter()
