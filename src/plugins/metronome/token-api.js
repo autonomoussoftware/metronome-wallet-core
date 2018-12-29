@@ -58,7 +58,15 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
           )
             .send({ from, gasPrice, gas, nonce }),
           from,
-          metaParsers.export({ returnValues: { destChain, to, value, fee } })
+          metaParsers.export(from)({
+            address: from,
+            returnValues: {
+              destinationChain: destChain,
+              destinationRecipientAddr: to,
+              amountToBurn: value,
+              fee
+            }
+          })
         )
       )
   }

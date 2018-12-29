@@ -3,17 +3,17 @@
 const MetronomeContracts = require('metronome-contracts')
 const tokenPorter = require('metronome-contracts/src/abis/TokenPorter')
 
-const exportMetaParser = ({ address, returnValues }) => ({
+const exportMetaParser = walletAddress => ({ address, returnValues }) => ({
   metronome: {
     export: {
-      from: address,
       destChain: returnValues.destinationChain,
       to: returnValues.destinationRecipientAddr,
       value: returnValues.amountToBurn,
       fee: returnValues.fee,
       burnHash: returnValues.currentBurnHash
     }
-  }
+  },
+  discard: address !== walletAddress
 })
 
 const importMetaParser = ({ returnValues }) => ({
@@ -28,12 +28,12 @@ const importMetaParser = ({ returnValues }) => ({
 })
 
 const getEventDataCreator = chain => [
-  (/* TODO address */) => ({
+  address => ({
     contractAddress: MetronomeContracts.addresses[chain].tokenPorter,
     abi: tokenPorter,
     eventName: 'ExportReceiptLog',
-    filter: { /* TODO how to filter my events only? */ },
-    metaParser: exportMetaParser
+    filter: { /* TODO how to filter by my events only? */ },
+    metaParser: exportMetaParser(address)
   }),
   address => ({
     contractAddress: MetronomeContracts.addresses[chain].tokenPorter,
