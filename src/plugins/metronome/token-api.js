@@ -58,9 +58,7 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
           )
             .send({ from, gasPrice, gas, nonce }),
           from,
-          metaParsers.export({
-            /* TODO syntetic log to get tx into the list on send */
-          })
+          metaParsers.export({ returnValues: { destChain, to, value, fee } })
         )
       )
   }
