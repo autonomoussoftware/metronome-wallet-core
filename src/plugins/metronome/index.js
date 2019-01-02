@@ -13,7 +13,8 @@ const {
   getEthToMetEstimate,
   getMetToMetEstimate
 } = require('./converter-api')
-const { sendMet } = require('./token-api')
+const { getExportMetFee } = require('./porter-api')
+const { exportMet, sendMet } = require('./token-api')
 const getAuctionStatus = require('./auction-status')
 const getConverterStatus = require('./converter-status')
 const auctionEvents = require('./auction-events')
@@ -92,7 +93,8 @@ function start ({ config, eventBus, plugins }) {
         explorer.logTransaction,
         metaParsers
       ),
-      exportMet: sendMet(web3, chainId, explorer.logTransaction, metaParsers),
+      getExportMetFee: getExportMetFee(web3, chainId),
+      exportMet: exportMet(web3, chainId, explorer.logTransaction, metaParsers),
       getAuctionGasLimit: estimateAuctionGas(web3, chainId),
       getConvertEthEstimate: getEthToMetEstimate(web3, chainId),
       getConvertEthGasLimit: estimateEthToMetGas(web3, chainId),
