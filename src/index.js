@@ -4,7 +4,7 @@ const EventEmitter = require('events')
 const debug = require('debug')('met-wallet:core')
 
 function createCore (config) {
-  const plugins = [
+  const pluginsCreators = [
     require('./plugins/coincap'),
     require('./plugins/eth'),
     require('./plugins/explorer'),
@@ -12,6 +12,8 @@ function createCore (config) {
     require('./plugins/tokens'),
     require('./plugins/metronome')
   ]
+
+  const plugins = pluginsCreators.map(plugin => plugin.create())
 
   let eventBus
   let initialized = false
