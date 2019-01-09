@@ -87,7 +87,7 @@ function create () {
       emitBalances(address)
     })
 
-    eventBus.on('eth-tx', function () {
+    eventBus.on('coin-tx', function () {
       if (accountAddress) {
         emitBalances(accountAddress)
       }

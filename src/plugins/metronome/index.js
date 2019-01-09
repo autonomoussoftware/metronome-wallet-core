@@ -6,11 +6,11 @@ const Web3 = require('web3')
 
 const { buyMet, estimateAuctionGas } = require('./auction-api')
 const {
-  convertEth,
+  convertCoin,
   convertMet,
-  estimateEthToMetGas,
-  estimateMetToEthGas,
-  getEthToMetEstimate,
+  estimateCoinToMetGas,
+  estimateMetToCoinGas,
+  getCoinToMetEstimate,
   getMetToMetEstimate
 } = require('./converter-api')
 const { getExportMetFee } = require('./porter-api')
@@ -51,7 +51,7 @@ function create () {
           }),
         getConverterStatus(web3, chainId)
           .then(function (status) {
-            eventBus.emit('mtn-converter-status-updated', status)
+            eventBus.emit('converter-status-updated', status)
           })
       ])
         .catch(function (err) {
@@ -64,7 +64,7 @@ function create () {
 
     emitMetronomeStatus()
 
-    eventBus.on('eth-block', emitMetronomeStatus)
+    eventBus.on('coin-block', emitMetronomeStatus)
 
     const metaParsers = Object.assign(
       {
@@ -83,7 +83,7 @@ function create () {
           explorer.logTransaction,
           metaParsers
         ),
-        convertEth: convertEth(
+        convertCoin: convertCoin(
           web3,
           chainId,
           explorer.logTransaction,
@@ -99,15 +99,15 @@ function create () {
           web3, chainId, explorer.logTransaction, metaParsers
         ),
         getAuctionGasLimit: estimateAuctionGas(web3, chainId),
-        getConvertEthEstimate: getEthToMetEstimate(web3, chainId),
-        getConvertEthGasLimit: estimateEthToMetGas(web3, chainId),
+        getConvertCoinEstimate: getCoinToMetEstimate(web3, chainId),
+        getConvertCoinGasLimit: estimateCoinToMetGas(web3, chainId),
         getConvertMetEstimate: getMetToMetEstimate(web3, chainId),
-        getConvertMetGasLimit: estimateMetToEthGas(web3, chainId),
+        getConvertMetGasLimit: estimateMetToCoinGas(web3, chainId),
         sendMet: sendMet(web3, chainId, explorer.logTransaction, metaParsers)
       },
       events: [
         'auction-status-updated',
-        'mtn-converter-status-updated',
+        'converter-status-updated',
         'wallet-error'
       ],
       name: 'metronome'

@@ -31,7 +31,7 @@ function create () {
         .catch(function (err) {
           eventBus.emit('wallet-error', {
             inner: err,
-            message: 'Could not get ETH balance',
+            message: `Could not get ${config.symbol} balance`,
             meta: { plugin: 'wallet' }
           })
         })
@@ -42,7 +42,7 @@ function create () {
       emitBalance(address)
     })
 
-    eventBus.on('eth-tx', function () {
+    eventBus.on('coin-tx', function () {
       addresses.forEach(function (address) {
         emitBalance(address)
       })
@@ -55,7 +55,7 @@ function create () {
         getAddressAndPrivateKey: hdkey.getAddressAndPrivateKey,
         getGasLimit: api.estimateGas(web3),
         getGasPrice: api.getGasPrice(web3),
-        sendEth: api.sendSignedTransaction(
+        sendCoin: api.sendSignedTransaction(
           web3, plugins.explorer.logTransaction
         )
       },

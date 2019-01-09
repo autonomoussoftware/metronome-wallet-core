@@ -8,8 +8,8 @@ function create () {
 
   function start ({ config, eventBus }) {
     function emitPrice (price) {
-      const priceData = { token: 'ETH', currency: 'USD', price }
-      eventBus.emit('eth-price-updated', priceData)
+      const priceData = { token: config.symbol, currency: 'USD', price }
+      eventBus.emit('coin-price-updated', priceData)
     }
 
     const throttledEmitPrice = throttle(
@@ -18,7 +18,7 @@ function create () {
       { leading: true, trailing: false }
     )
 
-    dataStream = createStream('ETH', 'ETH_USD')
+    dataStream = createStream(config.symbol, `${config.symbol}_USD`)
 
     dataStream.on('data', throttledEmitPrice)
 
@@ -32,7 +32,7 @@ function create () {
 
     return {
       events: [
-        'eth-price-updated'
+        'coin-price-updated'
       ]
     }
   }

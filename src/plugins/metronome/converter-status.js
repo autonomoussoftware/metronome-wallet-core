@@ -14,7 +14,7 @@ function getConverterStatus (web3, chain) {
 
   return promiseAllProps({
     availableMet: getMetBalance().call(),
-    availableEth: getEthBalance().call(),
+    availableCoin: getEthBalance().call(),
     currentPrice: getEthForMetResult(web3.utils.toWei('1')).call()
   })
 }

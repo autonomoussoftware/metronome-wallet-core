@@ -31,7 +31,7 @@ function create () {
         .then(function (block) {
           debug('Latest block', block.number, block.hash)
           bestBlock = block.number
-          eventBus.emit('eth-block', block)
+          eventBus.emit('coin-block', block)
         })
         .catch(function (err) {
           debug('Could not get lastest block')
@@ -54,7 +54,7 @@ function create () {
 
       debug('New block', header.number, header.hash)
       bestBlock = header.number
-      eventBus.emit('eth-block', header)
+      eventBus.emit('coin-block', header)
 
       intervalId = setInterval(function () {
         debug('No blocks received. Probing connection...')
@@ -99,7 +99,7 @@ function create () {
           }
         }
       })
-      eventBus.emit('eth-tx')
+      eventBus.emit('coin-tx')
     }
 
     function tryEmitTransactions (address, transactions) {
@@ -212,7 +212,7 @@ function create () {
             })
           })
 
-        eventBus.on('eth-block', function ({ number }) {
+        eventBus.on('coin-block', function ({ number }) {
           if (shallResync) {
             shallResync = false
             contract.getPastEvents(
@@ -264,7 +264,7 @@ function create () {
       }))
     }
 
-    function subscribeEthTransactions (fromBlock, address) {
+    function subscribeCoinTransactions (fromBlock, address) {
       let shallResync = false
       let bestSyncBlock = fromBlock
 
@@ -276,11 +276,11 @@ function create () {
       getTransactionStream(address)
         .on('data', queueAndEmitTransaction(address))
         .on('resync', function () {
-          debug('Shall resync ETH transactions on next block')
+          debug(`Shall resync ${config.symbol} transactions on next block`)
           shallResync = true
         })
         .on('error', function (err) {
-          debug('Shall resync ETH transactions on next block')
+          debug(`Shall resync ${config.symbol} transactions on next block`)
           shallResync = true
           eventBus.emit('wallet-error', {
             inner: err,
@@ -291,12 +291,12 @@ function create () {
 
       // Check if shall resync when a new block is seen, as that is the
       // indication of proper reconnection to the Ethereum node.
-      eventBus.on('eth-block', function ({ number }) {
+      eventBus.on('coin-block', function ({ number }) {
         if (shallResync) {
           shallResync = false
           getTransactions(bestSyncBlock, number, address)
             .then(function (transactions) {
-              debug(`${transactions.length} past ETH transactions retrieved`)
+              debug(`${transactions.length} past ${config.symbol} transactions retrieved`)
               transactions.forEach(queueAndEmitTransaction(address))
               bestSyncBlock = number
             })
@@ -312,12 +312,12 @@ function create () {
       })
     }
 
-    function getPastEthTransactions (fromBlock, toBlock, address) {
+    function getPastCoinTransactions (fromBlock, toBlock, address) {
       const { getTransactions } = indexer(config)
 
       return getTransactions(fromBlock, toBlock, address)
         .then(function (transactions) {
-          debug(`${transactions.length} past ETH transactions retrieved`)
+          debug(`${transactions.length} past ${config.symbol} transactions retrieved`)
           return Promise.all(transactions.map(queueAndEmitTransaction(address)))
             .then(noop)
         })
@@ -327,11 +327,11 @@ function create () {
       started
         .then(function () {
           debug('Syncing', fromBlock, bestBlock)
-          subscribeEthTransactions(bestBlock, address)
+          subscribeCoinTransactions(bestBlock, address)
           subscribeEvents(bestBlock, address)
           return Promise.all([
             bestBlock,
-            getPastEthTransactions(fromBlock, bestBlock, address),
+            getPastCoinTransactions(fromBlock, bestBlock, address),
             getPastEvents(fromBlock, bestBlock, address)
           ])
         })
@@ -348,7 +348,7 @@ function create () {
         })
         promiEvent.once('receipt', function (receipt) {
           queueAndEmitTransaction(from)(receipt.transactionHash)
-          eventBus.emit('eth-tx')
+          eventBus.emit('coin-tx')
           deferred.resolve({ receipt })
         })
         promiEvent.once('error', function (err) {
@@ -364,7 +364,7 @@ function create () {
       const promise = promiEvent
       return promise.then(function (receipt) {
         queueAndEmitTransaction(from)(receipt.transactionHash)
-        eventBus.emit('eth-tx')
+        eventBus.emit('coin-tx')
         return { receipt }
       })
     }
@@ -429,7 +429,7 @@ function create () {
 
     function refreshAllTransactions (address) {
       return Promise.all([
-        getPastEthTransactions(0, bestBlock, address),
+        getPastCoinTransactions(0, bestBlock, address),
         getPastEvents(0, bestBlock, address)
       ])
     }
@@ -443,7 +443,7 @@ function create () {
         refreshAllTransactions
       },
       events: [
-        'eth-block',
+        'coin-block',
         'wallet-error'
       ],
       name: 'explorer'

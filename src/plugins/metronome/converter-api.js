@@ -5,7 +5,7 @@ const { utils: { toBN } } = require('web3')
 
 const OVER_ESTIMATION = 1.1
 
-function estimateEthToMetGas (web3, chain) {
+function estimateCoinToMetGas (web3, chain) {
   const { autonomousConverter } = new MetronomeContracts(web3, chain)
   return ({ from, value, minReturn = '1' }) =>
     autonomousConverter.methods.convertEthToMet(minReturn)
@@ -13,7 +13,7 @@ function estimateEthToMetGas (web3, chain) {
       .then(gasLimit => ({ gasLimit: Math.round(gasLimit * OVER_ESTIMATION) }))
 }
 
-function estimateMetToEthGas (web3, chain) {
+function estimateMetToCoinGas (web3, chain) {
   const { autonomousConverter } = new MetronomeContracts(web3, chain)
   return ({ from, value, minReturn = '1' }) =>
     autonomousConverter.methods.convertMetToEth(value, minReturn)
@@ -21,7 +21,7 @@ function estimateMetToEthGas (web3, chain) {
       .then(gasLimit => ({ gasLimit: Math.round(gasLimit * OVER_ESTIMATION) }))
 }
 
-function getEthToMetEstimate (web3, chain) {
+function getCoinToMetEstimate (web3, chain) {
   const { autonomousConverter } = new MetronomeContracts(web3, chain)
   return ({ value }) =>
     autonomousConverter.methods.getMetForEthResult(value).call()
@@ -40,7 +40,7 @@ function addAccount (web3, privateKey) {
     .add(web3.eth.accounts.privateKeyToAccount(privateKey))
 }
 
-function convertEth (web3, chain, logTransaction, metaParsers) {
+function convertCoin (web3, chain, logTransaction, metaParsers) {
   const { autonomousConverter } = new MetronomeContracts(web3, chain)
 
   return function (privateKey, transactionObject) {
@@ -141,10 +141,10 @@ function convertMet (web3, chain, logTransaction, metaParsers) {
 }
 
 module.exports = {
-  convertEth,
+  convertCoin,
   convertMet,
-  estimateEthToMetGas,
-  estimateMetToEthGas,
-  getEthToMetEstimate,
+  estimateCoinToMetGas,
+  estimateMetToCoinGas,
+  getCoinToMetEstimate,
   getMetToMetEstimate
 }
