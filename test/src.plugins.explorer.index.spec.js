@@ -11,7 +11,7 @@ const { randomAddress, randomTxId } = require('./utils')
 
 chai.use(chaiAsPromised).should()
 
-const explorer = require('../src/plugins/explorer')
+const explorer = require('../src/plugins/explorer').create()
 const config = { debug: true, explorer: { debuounce: 100 } }
 const web3 = new Web3()
 
