@@ -198,43 +198,51 @@ function create () {
 
         const contract = new web3.eth.Contract(abi, contractAddress)
 
-        // Get past events and subscribe to incoming events
-        contract.events[eventName]({ fromBlock, filter })
-          .on('data', queueAndEmitEvent(address, metaParser))
-          .on('changed', queueAndEmitEvent(address, metaParser))
-          .on('error', function (err) {
-            debug('Shall resync events on next block')
-            shallResync = true
-            eventBus.emit('wallet-error', {
-              inner: err,
-              message: 'Subscription to events failed',
-              meta: { plugin: 'explorer' }
+        try {
+          // Get past events and subscribe to incoming events
+          contract.events[eventName]({ fromBlock, filter })
+            .on('data', queueAndEmitEvent(address, metaParser))
+            .on('changed', queueAndEmitEvent(address, metaParser))
+            .on('error', function (err) {
+              debug('Shall resync events on next block')
+              shallResync = true
+              eventBus.emit('wallet-error', {
+                inner: err,
+                message: 'Subscription to events failed',
+                meta: { plugin: 'explorer' }
+              })
             })
-          })
 
-        eventBus.on('coin-block', function ({ number }) {
-          if (shallResync) {
-            shallResync = false
-            contract.getPastEvents(
-              eventName,
-              { fromBlock: bestSyncBlock, filter }
-            )
-              .then(function (events) {
-                debug(`${events.length} past ${eventName} events retrieved`)
-                events.forEach(queueAndEmitEvent(address, metaParser))
-              })
-              .catch(function (err) {
-                shallResync = true
-                eventBus.emit('wallet-error', {
-                  inner: err,
-                  message: 'Failed to resync events',
-                  meta: { plugin: 'explorer' }
+          eventBus.on('coin-block', function ({ number }) {
+            if (shallResync) {
+              shallResync = false
+              contract.getPastEvents(
+                eventName,
+                { fromBlock: bestSyncBlock, filter }
+              )
+                .then(function (events) {
+                  debug(`${events.length} past ${eventName} events retrieved`)
+                  events.forEach(queueAndEmitEvent(address, metaParser))
                 })
-              })
-          } else {
-            bestSyncBlock = number
-          }
-        })
+                .catch(function (err) {
+                  shallResync = true
+                  eventBus.emit('wallet-error', {
+                    inner: err,
+                    message: 'Failed to resync events',
+                    meta: { plugin: 'explorer' }
+                  })
+                })
+            } else {
+              bestSyncBlock = number
+            }
+          })
+        } catch (err) {
+          eventBus.emit('wallet-error', {
+            inner: err,
+            message: 'Could not subscribe to event',
+            meta: { plugin: 'explorer' }
+          })
+        }
       })
     }
 
