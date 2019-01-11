@@ -30,7 +30,7 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
   const getSocket = baseURL =>
     axios.get('/blocks/best')
       .then(() =>
-        io(`${baseURL}/v1`, {
+        io(`${baseURL}/v2`, {
           autoConnect: false,
           extraHeaders: { Cookie: jar.getCookiesSync(baseURL).join(';') }
         })
@@ -50,7 +50,7 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
         socket.on('connect', function () {
           socket.emit(
             'subscribe',
-            { type: 'txs', addresses: [address] },
+            [address],
             function (err) {
               if (err) {
                 stream.emit('error', err)
