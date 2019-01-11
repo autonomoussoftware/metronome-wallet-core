@@ -12,7 +12,12 @@ const indexer = require('./indexer')
 function create () {
   function markFailedTransaction ({ transaction, receipt, meta }) {
     if (receipt && meta) {
-      meta.contractCallFailed = receipt.status === false
+      meta.contractCallFailed = receipt.status === false || (
+        receipt.status === null && // no Byzantinum fork
+        transaction.input !== '0x' && // is contract call
+        transaction.gas === receipt.gasUsed && // used all gas
+        !receipt.logs.length // and no any logs
+      )
     }
 
     return { transaction, receipt, meta }
