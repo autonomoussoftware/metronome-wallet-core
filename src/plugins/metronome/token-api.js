@@ -54,7 +54,7 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
           METToken.methods.export(
             toHex(destinationChain),
             destinationMetAddress,
-            to,
+            to || from,
             value,
             fee,
             extraData
@@ -66,7 +66,7 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
             returnValues: {
               amountToBurn: value,
               destinationChain: toHex(destinationChain),
-              destinationRecipientAddr: to,
+              destinationRecipientAddr: to || from,
               fee
             }
           })
