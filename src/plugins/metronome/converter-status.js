@@ -4,13 +4,13 @@ const MetronomeContracts = require('metronome-contracts')
 const promiseAllProps = require('promise-all-props')
 
 function getConverterStatus (web3, chain) {
-  const { autonomousConverter } = new MetronomeContracts(web3, chain)
+  const { AutonomousConverter } = new MetronomeContracts(web3, chain)
 
   const {
     getMetBalance,
     getEthBalance,
     getEthForMetResult
-  } = autonomousConverter.methods
+  } = AutonomousConverter.methods
 
   return promiseAllProps({
     availableMet: getMetBalance().call(),

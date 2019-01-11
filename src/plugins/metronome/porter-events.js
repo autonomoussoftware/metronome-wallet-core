@@ -1,7 +1,6 @@
 'use strict'
 
 const MetronomeContracts = require('metronome-contracts')
-const tokenPorter = require('metronome-contracts/src/abis/TokenPorter')
 
 const exportMetaParser = walletAddress => ({ address, returnValues }) => ({
   metronome: {
@@ -29,15 +28,15 @@ const importMetaParser = ({ returnValues }) => ({
 
 const getEventDataCreator = chain => [
   address => ({
-    contractAddress: MetronomeContracts.addresses[chain].tokenPorter,
-    abi: tokenPorter,
+    contractAddress: MetronomeContracts[chain].TokenPorter.address,
+    abi: MetronomeContracts[chain].TokenPorter.abi,
     eventName: 'ExportReceiptLog',
     filter: { /* TODO how to filter by my events only? */ },
     metaParser: exportMetaParser(address)
   }),
   address => ({
-    contractAddress: MetronomeContracts.addresses[chain].tokenPorter,
-    abi: tokenPorter,
+    contractAddress: MetronomeContracts[chain].TokenPorter.address,
+    abi: MetronomeContracts[chain].TokenPorter.abi,
     eventName: 'LogImport',
     filter: { destinationRecipientAddr: address },
     metaParser: importMetaParser

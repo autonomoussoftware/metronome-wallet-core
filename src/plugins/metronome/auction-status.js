@@ -3,9 +3,9 @@
 const MetronomeContracts = require('metronome-contracts')
 
 function getAuctionStatus (web3, chain) {
-  const { auctions } = new MetronomeContracts(web3, chain)
+  const { Auctions } = new MetronomeContracts(web3, chain)
 
-  return auctions.methods.heartbeat().call()
+  return Auctions.methods.heartbeat().call()
     .then(({
       currAuction,
       currentAuctionPrice,

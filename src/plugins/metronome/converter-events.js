@@ -1,7 +1,6 @@
 'use strict'
 
 const MetronomeContracts = require('metronome-contracts')
-const converterAbi = require('metronome-contracts/src/abis/AutonomousConverter')
 
 const converterMetaParser = ({ event, returnValues }) => ({
   metronome: {
@@ -12,15 +11,15 @@ const converterMetaParser = ({ event, returnValues }) => ({
 
 const getEventDataCreator = chain => [
   address => ({
-    contractAddress: MetronomeContracts.addresses[chain].autonomousConverter,
-    abi: converterAbi,
+    contractAddress: MetronomeContracts[chain].AutonomousConverter.address,
+    abi: MetronomeContracts[chain].AutonomousConverter.abi,
     eventName: 'ConvertEthToMet',
     filter: { from: address },
     metaParser: converterMetaParser
   }),
   address => ({
-    contractAddress: MetronomeContracts.addresses[chain].autonomousConverter,
-    abi: converterAbi,
+    contractAddress: MetronomeContracts[chain].AutonomousConverter.address,
+    abi: MetronomeContracts[chain].AutonomousConverter.abi,
     eventName: 'ConvertMetToEth',
     filter: { from: address },
     metaParser: converterMetaParser

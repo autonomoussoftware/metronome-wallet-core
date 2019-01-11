@@ -12,17 +12,17 @@ function getNextNonce (web3, from) {
 }
 
 function sendMet (web3, chain, logTransaction, metaParsers) {
-  const { metToken } = new MetronomeContracts(web3, chain)
+  const { METToken } = new MetronomeContracts(web3, chain)
   return function (privateKey, { gasPrice, gas, from, to, value }) {
     addAccount(web3, privateKey)
     return getNextNonce(web3, from)
       .then(nonce =>
         logTransaction(
-          metToken.methods.transfer(to, value)
+          METToken.methods.transfer(to, value)
             .send({ from, gasPrice, gas, nonce }),
           from,
           metaParsers.transfer({
-            address: metToken.options.address,
+            address: METToken.options.address,
             returnValues: { _from: from, _to: to, _value: value }
           })
         )
@@ -31,7 +31,7 @@ function sendMet (web3, chain, logTransaction, metaParsers) {
 }
 
 function exportMet (web3, chain, logTransaction, metaParsers) {
-  const { metToken } = new MetronomeContracts(web3, chain)
+  const { METToken } = new MetronomeContracts(web3, chain)
   return function (privateKey, params) {
     const {
       destChain,
@@ -48,7 +48,7 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
     return getNextNonce(web3, from)
       .then(nonce =>
         logTransaction(
-          metToken.methods.export(
+          METToken.methods.export(
             destChain,
             destMetAddr,
             to,

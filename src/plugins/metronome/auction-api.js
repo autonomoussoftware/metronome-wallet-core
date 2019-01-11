@@ -10,7 +10,7 @@ function addAccount (web3, privateKey) {
 }
 
 function buyMet (web3, chain, logTransaction, metaParsers) {
-  const to = MetronomeContracts.addresses[chain].auctions
+  const to = MetronomeContracts[chain].Auctions.address
   return function (privateKey, { from, value, gas, gasPrice }) {
     addAccount(web3, privateKey)
     return web3.eth.getTransactionCount(from, 'pending')
@@ -25,7 +25,7 @@ function buyMet (web3, chain, logTransaction, metaParsers) {
 }
 
 function estimateAuctionGas (web3, chain) {
-  const to = MetronomeContracts.addresses[chain].auctions
+  const to = MetronomeContracts[chain].Auctions.address
   return ({ from, value }) => web3.eth.estimateGas({ from, to, value })
     .then(gasLimit => ({ gasLimit: Math.round(gasLimit * OVER_ESTIMATION) }))
 }

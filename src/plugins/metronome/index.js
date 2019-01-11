@@ -28,7 +28,7 @@ function create () {
     const { chainId } = config
     const { eth, explorer, tokens } = plugins
 
-    tokens.registerToken(MetronomeContracts.addresses[chainId].metToken, {
+    tokens.registerToken(MetronomeContracts[chainId].METToken.address, {
       decimals: 18,
       name: 'Metronome',
       symbol: 'MET'

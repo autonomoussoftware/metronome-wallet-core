@@ -1,7 +1,6 @@
 'use strict'
 
 const MetronomeContracts = require('metronome-contracts')
-const auctionsAbi = require('metronome-contracts/src/abis/Auctions')
 
 const auctionMetaParser = ({ returnValues }) => ({
   metronome: {
@@ -12,8 +11,8 @@ const auctionMetaParser = ({ returnValues }) => ({
 
 const getEventDataCreator = chain => [
   address => ({
-    contractAddress: MetronomeContracts.addresses[chain].auctions,
-    abi: auctionsAbi,
+    contractAddress: MetronomeContracts[chain].Auctions.address,
+    abi: MetronomeContracts[chain].Auctions.abi,
     eventName: 'LogAuctionFundsIn',
     filter: { sender: address },
     metaParser: auctionMetaParser
