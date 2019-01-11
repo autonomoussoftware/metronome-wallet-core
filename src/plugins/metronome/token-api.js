@@ -48,15 +48,18 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
       value
     } = params
     addAccount(web3, privateKey)
-    return getNextNonce(web3, from)
-      .then(nonce =>
+    return Promise.all([
+      getNextNonce(web3, from),
+      fee || getExportMetFee(web3, chain)({ value })
+    ])
+      .then(([nonce, actualFee]) =>
         logTransaction(
           METToken.methods.export(
             toHex(destinationChain),
             destinationMetAddress,
             to || from,
             value,
-            fee,
+            actualFee,
             extraData
           )
             .send({ from, gasPrice, gas, nonce }),
@@ -67,7 +70,7 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
               amountToBurn: value,
               destinationChain: toHex(destinationChain),
               destinationRecipientAddr: to || from,
-              fee
+              fee: actualFee
             }
           })
         )
