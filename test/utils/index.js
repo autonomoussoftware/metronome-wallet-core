@@ -1,6 +1,6 @@
 'use strict'
 
-const { toChecksumAddress } = require('web3-utils')
+const { utils: { toChecksumAddress } } = require('web3')
 const randomstring = require('randomstring').generate
 
 const randomHex = length => `0x${randomstring({ length, charset: 'hex' })}`

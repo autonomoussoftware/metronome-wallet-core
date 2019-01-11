@@ -1,15 +1,24 @@
 'use strict'
 
+const { utils: { hexToUtf8 } } = require('web3')
 const MetronomeContracts = require('metronome-contracts')
 
 const exportMetaParser = walletAddress => ({ address, returnValues }) => ({
   metronome: {
     export: {
-      destChain: returnValues.destinationChain,
-      to: returnValues.destinationRecipientAddr,
-      value: returnValues.amountToBurn,
+      blockTimestamp: returnValues.blockTimestamp,
+      burnSequence: returnValues.burnSequence,
+      currentBurnHash: returnValues.currentBurnHash,
+      currentTick: returnValues.currentTick,
+      dailyAuctionStartTime: returnValues.dailyAuctionStartTime,
+      dailyMintable: returnValues.dailyMintable,
+      destinationChain: hexToUtf8(returnValues.destinationChain),
       fee: returnValues.fee,
-      burnHash: returnValues.currentBurnHash
+      genesisTime: returnValues.genesisTime,
+      previousBurnHash: returnValues.prevBurnHash,
+      supply: returnValues.supplyOnAllChains,
+      to: returnValues.destinationRecipientAddr,
+      value: returnValues.amountToBurn
     }
   },
   discard: address !== walletAddress
@@ -18,10 +27,10 @@ const exportMetaParser = walletAddress => ({ address, returnValues }) => ({
 const importMetaParser = ({ returnValues }) => ({
   metronome: {
     import: {
-      originChain: returnValues.originChain,
+      currentBurnHash: returnValues.currentHash,
+      originChain: hexToUtf8(returnValues.originChain),
       to: returnValues.destinationRecipientAddr,
-      value: returnValues.amountImported,
-      burnHash: returnValues.currentHash
+      value: returnValues.amountImported
     }
   }
 })

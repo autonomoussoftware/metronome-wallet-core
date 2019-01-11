@@ -1,5 +1,8 @@
 'use strict'
 
+const { utils: { toHex } } = require('web3')
+const crypto = require('crypto')
+const MerkleTreeJs = require('merkletreejs')
 const MetronomeContracts = require('metronome-contracts')
 
 function addAccount (web3, privateKey) {
@@ -34,8 +37,8 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
   const { METToken } = new MetronomeContracts(web3, chain)
   return function (privateKey, params) {
     const {
-      destChain,
-      destMetAddr,
+      destinationChain,
+      destinationMetAddress,
       extraData,
       fee,
       from,
@@ -49,8 +52,8 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
       .then(nonce =>
         logTransaction(
           METToken.methods.export(
-            destChain,
-            destMetAddr,
+            toHex(destinationChain),
+            destinationMetAddress,
             to,
             value,
             fee,
@@ -61,10 +64,79 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
           metaParsers.export(from)({
             address: from,
             returnValues: {
-              destinationChain: destChain,
-              destinationRecipientAddr: to,
               amountToBurn: value,
+              destinationChain: toHex(destinationChain),
+              destinationRecipientAddr: to,
               fee
+            }
+          })
+        )
+      )
+  }
+}
+
+function getMerkleRoot (hashes) {
+  const leaves = hashes.map(x => Buffer.from(x.slice(2), 'hex'))
+  const tree = new MerkleTreeJs(leaves, data =>
+    crypto.createHash('sha256').update(data).digest()
+  )
+  return `0x${tree.getRoot().toString('hex')}`
+}
+
+function importMet (web3, chain, logTransaction, metaParsers) {
+  const { METToken } = new MetronomeContracts(web3, chain)
+  return function (privateKey, params) {
+    const {
+      blockTimestamp,
+      burnSequence,
+      currentBurnHash,
+      currentTick,
+      dailyAuctionStartTime,
+      dailyMintable,
+      destinationChain,
+      destinationMetAddress,
+      extraData,
+      fee,
+      from,
+      gas,
+      gasPrice,
+      genesisTime,
+      originChain,
+      previousBurnHash,
+      supply,
+      value
+    } = params
+    addAccount(web3, privateKey)
+    return getNextNonce(web3, from)
+      .then(nonce =>
+        logTransaction(
+          METToken.methods.importMET(
+            toHex(originChain),
+            toHex(destinationChain),
+            [destinationMetAddress, from],
+            extraData,
+            [previousBurnHash, currentBurnHash],
+            supply,
+            [
+              blockTimestamp,
+              value,
+              fee,
+              currentTick,
+              genesisTime,
+              dailyMintable,
+              burnSequence,
+              dailyAuctionStartTime
+            ],
+            getMerkleRoot([previousBurnHash, currentBurnHash])
+          )
+            .send({ from, gasPrice, gas, nonce }),
+          from,
+          metaParsers.import(from)({
+            returnValues: {
+              currentBurnHash,
+              originChain: toHex(originChain),
+              to: from,
+              value
             }
           })
         )
@@ -74,5 +146,6 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
 
 module.exports = {
   exportMet,
+  importMet,
   sendMet
 }
