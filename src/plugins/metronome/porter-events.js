@@ -30,8 +30,8 @@ const getEventDataCreator = chain => [
   address => ({
     contractAddress: MetronomeContracts[chain].TokenPorter.address,
     abi: MetronomeContracts[chain].TokenPorter.abi,
-    eventName: 'ExportReceiptLog',
-    filter: { /* TODO how to filter by my events only? */ },
+    eventName: 'LogExportReceipt',
+    filter: { exporter: address },
     metaParser: exportMetaParser(address)
   }),
   address => ({
