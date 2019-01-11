@@ -14,7 +14,7 @@ const {
   getMetToMetEstimate
 } = require('./converter-api')
 const { getExportMetFee } = require('./porter-api')
-const { exportMet, sendMet } = require('./token-api')
+const { exportMet, importMet, sendMet } = require('./token-api')
 const getAuctionStatus = require('./auction-status')
 const getConverterStatus = require('./converter-status')
 const auctionEvents = require('./auction-events')
@@ -103,6 +103,9 @@ function create () {
         getConvertCoinGasLimit: estimateCoinToMetGas(web3, chainId),
         getConvertMetEstimate: getMetToMetEstimate(web3, chainId),
         getConvertMetGasLimit: estimateMetToCoinGas(web3, chainId),
+        importMet: importMet(
+          web3, chainId, explorer.logTransaction, metaParsers
+        ),
         sendMet: sendMet(web3, chainId, explorer.logTransaction, metaParsers)
       },
       events: [
