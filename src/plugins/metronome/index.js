@@ -14,7 +14,13 @@ const {
   getMetToMetEstimate
 } = require('./converter-api')
 const { getExportMetFee } = require('./porter-api')
-const { exportMet, importMet, sendMet } = require('./token-api')
+const {
+  estimateExportMetGas,
+  estimateImportMetGas,
+  exportMet,
+  importMet,
+  sendMet
+} = require('./token-api')
 const getAuctionStatus = require('./auction-status')
 const getConverterStatus = require('./converter-status')
 const auctionEvents = require('./auction-events')
@@ -95,6 +101,8 @@ function create () {
           metaParsers
         ),
         getExportMetFee: getExportMetFee(web3, chainId),
+        estimateExportMetGas: estimateExportMetGas(web3, chainId),
+        estimateImportMetGas: estimateImportMetGas(web3, chainId),
         exportMet: exportMet(
           web3, chainId, explorer.logTransaction, metaParsers
         ),
