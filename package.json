@@ -36,13 +36,13 @@
     "delay": "^4.1.0",
     "ethereumjs-wallet": "^0.6.3",
     "lodash": "^4.17.10",
-    "merkletreejs": "0.0.20",
+    "merkletreejs": "^0.0.20",
     "metronome-contracts": "git@github.com:autonomoussoftware/metronome-contracts-js.git#port-feature",
     "p-defer": "^1.0.0",
     "promise-all-props": "^1.0.1",
     "socket.io-client": "^2.2.0",
     "tough-cookie": "^2.5.0",
-    "web3": "^1.0.0-beta.36",
+    "web3": "^1.0.0-beta.37",
     "websocket-reconnector": "^1.1.1"
   },
   "devDependencies": {
