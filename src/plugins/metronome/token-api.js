@@ -36,9 +36,8 @@ function estimateExportMetGas (web3, chain) {
       value,
       fee,
       extraData
-    )
-      .estimateGas({ from, value })
-      .then(gasLimit => ({ gasLimit: Math.round(gasLimit * OVER_ESTIMATION) }))
+    ).estimateGas({ from, value })
+      .then(gas => Math.round(gas * OVER_ESTIMATION))
   }
 }
 
@@ -81,9 +80,8 @@ function estimateImportMetGas (web3, chain) {
         dailyAuctionStartTime
       ],
       getMerkleRoot([previousBurnHash, currentBurnHash])
-    )
-      .estimateGas({ from, value })
-      .then(gasLimit => ({ gasLimit: Math.round(gasLimit * OVER_ESTIMATION) }))
+    ).estimateGas({ from, value })
+      .then(gas => Math.round(gas * OVER_ESTIMATION))
   }
 }
 
@@ -143,8 +141,7 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
             value,
             actualFee,
             extraData
-          )
-            .send({ from, gasPrice, gas, nonce }),
+          ).send({ from, gasPrice, gas, nonce }),
           from,
           metaParsers.export(from)({
             address: from,
@@ -205,8 +202,7 @@ function importMet (web3, chain, logTransaction, metaParsers) {
               dailyAuctionStartTime
             ],
             getMerkleRoot([previousBurnHash, currentBurnHash])
-          )
-            .send({ from, gasPrice, gas, nonce }),
+          ).send({ from, gasPrice, gas, nonce }),
           from,
           metaParsers.import(from)({
             returnValues: {
