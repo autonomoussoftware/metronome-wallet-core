@@ -8,10 +8,10 @@ function getExportMetFee (web3, chain) {
   return ({ value }) =>
     Promise.all([
       TokenPorter.methods.minimumExportFee().call().then(fee => toBN(fee)),
-      TokenPorter.methods.exportFee().call().then(fee => toBN(fee).divn(10000))
+      TokenPorter.methods.exportFee().call().then(fee => toBN(fee))
     ])
-      .then(([minFee, feePerMet]) =>
-        BN.max(minFee, feePerMet.mul(toBN(value))).toString()
+      .then(([minFee, exportFee]) =>
+        BN.max(minFee, exportFee.mul(toBN(value)).divn(10000)).toString()
       )
 }
 
