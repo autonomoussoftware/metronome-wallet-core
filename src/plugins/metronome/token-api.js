@@ -36,7 +36,7 @@ function estimateExportMetGas (web3, chain) {
       value,
       fee,
       extraData
-    ).estimateGas({ from, value })
+    ).estimateGas({ from })
       .then(gas => Math.round(gas * OVER_ESTIMATION))
   }
 }
@@ -80,7 +80,7 @@ function estimateImportMetGas (web3, chain) {
         dailyAuctionStartTime
       ],
       getMerkleRoot([previousBurnHash, currentBurnHash])
-    ).estimateGas({ from, value })
+    ).estimateGas({ from })
       .then(gas => Math.round(gas * OVER_ESTIMATION))
   }
 }
