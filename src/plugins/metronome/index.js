@@ -76,7 +76,8 @@ function create () {
       {
         auction: auctionEvents.auctionMetaParser,
         converter: converterEvents.converterMetaParser,
-        export: porterEvents.exportMetaParser
+        export: porterEvents.exportMetaParser,
+        import: porterEvents.importMetaParser
       },
       tokens.metaParsers
     )

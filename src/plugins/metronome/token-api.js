@@ -204,7 +204,7 @@ function importMet (web3, chain, logTransaction, metaParsers) {
             getMerkleRoot([previousBurnHash, currentBurnHash])
           ).send({ from, gasPrice, gas, nonce }),
           from,
-          metaParsers.import(from)({
+          metaParsers.import({
             returnValues: {
               currentBurnHash,
               originChain: toHex(originChain),

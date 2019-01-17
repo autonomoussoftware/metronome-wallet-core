@@ -54,5 +54,6 @@ const getEventDataCreator = chain => [
 
 module.exports = {
   getEventDataCreator,
-  exportMetaParser
+  exportMetaParser,
+  importMetaParser
 }
