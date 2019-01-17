@@ -3,7 +3,7 @@
 const { utils: { hexToUtf8 } } = require('web3')
 const MetronomeContracts = require('metronome-contracts')
 
-const exportMetaParser = walletAddress => ({ address, returnValues }) => ({
+const exportMetaParser = ({ returnValues }) => ({
   metronome: {
     export: {
       blockTimestamp: returnValues.blockTimestamp,
@@ -20,14 +20,26 @@ const exportMetaParser = walletAddress => ({ address, returnValues }) => ({
       to: returnValues.destinationRecipientAddr,
       value: returnValues.amountToBurn
     }
-  },
-  discard: address !== walletAddress
+  }
+})
+
+const importRequestMetaParser = ({ returnValues }) => ({
+  metronome: {
+    importRequest: {
+      currentBurnHash: returnValues.currentBurnHash,
+      fee: returnValues.fee,
+      originChain: hexToUtf8(returnValues.originChain),
+      to: returnValues.destinationRecipientAddr,
+      value: returnValues.amountToImport
+    }
+  }
 })
 
 const importMetaParser = ({ returnValues }) => ({
   metronome: {
     import: {
       currentBurnHash: returnValues.currentHash,
+      fee: returnValues.fee,
       originChain: hexToUtf8(returnValues.originChain),
       to: returnValues.destinationRecipientAddr,
       value: returnValues.amountImported
@@ -41,7 +53,14 @@ const getEventDataCreator = chain => [
     abi: MetronomeContracts[chain].TokenPorter.abi,
     eventName: 'LogExportReceipt',
     filter: { exporter: address },
-    metaParser: exportMetaParser(address)
+    metaParser: exportMetaParser
+  }),
+  address => ({
+    contractAddress: MetronomeContracts[chain].TokenPorter.address,
+    abi: MetronomeContracts[chain].TokenPorter.abi,
+    eventName: 'LogImportRequest',
+    filter: { destinationRecipientAddr: address },
+    metaParser: importRequestMetaParser
   }),
   address => ({
     contractAddress: MetronomeContracts[chain].TokenPorter.address,
@@ -55,5 +74,6 @@ const getEventDataCreator = chain => [
 module.exports = {
   getEventDataCreator,
   exportMetaParser,
-  importMetaParser
+  importMetaParser,
+  importRequestMetaParser
 }

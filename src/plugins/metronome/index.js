@@ -26,6 +26,7 @@ const getConverterStatus = require('./converter-status')
 const auctionEvents = require('./auction-events')
 const converterEvents = require('./converter-events')
 const porterEvents = require('./porter-events')
+const validatorEvents = require('./validator-events')
 
 function create () {
   function start ({ config, eventBus, plugins }) {
@@ -45,6 +46,7 @@ function create () {
       .concat(auctionEvents.getEventDataCreator(chainId))
       .concat(converterEvents.getEventDataCreator(chainId))
       .concat(porterEvents.getEventDataCreator(chainId))
+      .concat(validatorEvents.getEventDataCreator(chainId))
       .forEach(explorer.registerEvent)
 
     const web3 = new Web3(eth.web3Provider)
@@ -77,7 +79,8 @@ function create () {
         auction: auctionEvents.auctionMetaParser,
         converter: converterEvents.converterMetaParser,
         export: porterEvents.exportMetaParser,
-        import: porterEvents.importMetaParser
+        import: porterEvents.importMetaParser,
+        importRequest: porterEvents.importRequestMetaParser
       },
       tokens.metaParsers
     )
