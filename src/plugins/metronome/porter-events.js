@@ -58,6 +58,13 @@ const getEventDataCreator = chain => [
   address => ({
     contractAddress: MetronomeContracts[chain].TokenPorter.address,
     abi: MetronomeContracts[chain].TokenPorter.abi,
+    eventName: 'LogExportReceipt',
+    filter: { destinationRecipientAddr: address },
+    metaParser: exportMetaParser
+  }),
+  address => ({
+    contractAddress: MetronomeContracts[chain].TokenPorter.address,
+    abi: MetronomeContracts[chain].TokenPorter.abi,
     eventName: 'LogImportRequest',
     filter: { destinationRecipientAddr: address },
     metaParser: importRequestMetaParser
