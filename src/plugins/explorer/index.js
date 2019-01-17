@@ -382,43 +382,45 @@ function create () {
       })
     }
 
-    function tryParseEventLog (log, address) {
-      registeredEvents.forEach(function (registration) {
-        const {
-          abi,
-          contractAddress,
-          eventName,
-          filter,
-          metaParser
-        } = registration(address)
+    function tryParseEventLog (log, walletAddress) {
+      return registeredEvents
+        .map(function (registration) {
+          const {
+            abi,
+            contractAddress,
+            eventName,
+            filter,
+            metaParser
+          } = registration(walletAddress)
 
-        const eventAbi = abi.find(e =>
-          e.type === 'event' && e.name === eventName
-        )
-        const signature = web3.eth.abi.encodeEventSignature(eventAbi)
+          const eventAbi = abi.find(e =>
+            e.type === 'event' && e.name === eventName
+          )
+          const signature = web3.eth.abi.encodeEventSignature(eventAbi)
 
-        if (log.address !== contractAddress || log.topics[0] !== signature) {
-          return null
-        }
+          if (log.address !== contractAddress ||
+            log.raw.topics[0] !== signature
+          ) {
+            return null
+          }
 
-        const returnValues = web3.eth.abi.decodeLog(
-          eventAbi.inputs,
-          log.data,
-          eventAbi.anonymous ? log.topics : log.topics.slice(1)
-        )
+          const returnValues = web3.eth.abi.decodeLog(
+            eventAbi.inputs,
+            log.raw.data,
+            eventAbi.anonymous ? log.raw.topics : log.raw.topics.slice(1)
+          )
 
-        return {
-          filter,
-          metaParser,
-          parsed: Object.assign({}, log, {
-            event: eventName,
-            returnValues,
-            signature
-          })
-        }
-      })
-
-      return null
+          return {
+            filter,
+            metaParser,
+            parsed: Object.assign({}, log, {
+              event: eventName,
+              returnValues,
+              signature
+            })
+          }
+        })
+        .find(data => !!data)
     }
 
     function refreshTransaction (hash, address) {
