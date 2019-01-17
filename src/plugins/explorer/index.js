@@ -382,6 +382,45 @@ function create () {
       })
     }
 
+    function tryParseEventLog (log, address) {
+      registeredEvents.forEach(function (registration) {
+        const {
+          abi,
+          contractAddress,
+          eventName,
+          filter,
+          metaParser
+        } = registration(address)
+
+        const eventAbi = abi.find(e =>
+          e.type === 'event' && e.name === eventName
+        )
+        const signature = web3.eth.abi.encodeEventSignature(eventAbi)
+
+        if (log.address !== contractAddress || log.topics[0] !== signature) {
+          return null
+        }
+
+        const returnValues = web3.eth.abi.decodeLog(
+          eventAbi.inputs,
+          log.data,
+          eventAbi.anonymous ? log.topics : log.topics.slice(1)
+        )
+
+        return {
+          filter,
+          metaParser,
+          parsed: Object.assign({}, log, {
+            event: eventName,
+            returnValues,
+            signature
+          })
+        }
+      })
+
+      return null
+    }
+
     function refreshTransaction (hash, address) {
       return web3.eth.getTransactionReceipt(hash)
         .then(function (receipt) {
@@ -450,10 +489,11 @@ function create () {
     return {
       api: {
         logTransaction,
+        refreshAllTransactions,
+        refreshTransaction,
         registerEvent,
         syncTransactions,
-        refreshTransaction,
-        refreshAllTransactions
+        tryParseEventLog
       },
       events: [
         'coin-block',
