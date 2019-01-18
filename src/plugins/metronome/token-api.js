@@ -158,14 +158,13 @@ function exportMet (web3, chain, logTransaction, metaParsers) {
 }
 
 function importMet (web3, chain, logTransaction, metaParsers) {
-  const { METToken } = new MetronomeContracts(web3, chain)
+  const { Auctions, METToken } = new MetronomeContracts(web3, chain)
   return function (privateKey, params) {
     const {
       blockTimestamp,
       burnSequence,
       currentBurnHash,
       currentTick,
-      dailyAuctionStartTime,
       dailyMintable,
       destinationChain,
       destinationMetAddress,
@@ -174,15 +173,19 @@ function importMet (web3, chain, logTransaction, metaParsers) {
       from,
       gas,
       gasPrice,
-      genesisTime,
       originChain,
       previousBurnHash,
       supply,
       value
     } = params
     addAccount(web3, privateKey)
-    return getNextNonce(web3, from)
-      .then(nonce =>
+
+    return Promise.all([
+      getNextNonce(web3, from),
+      Auctions.methods.genesisTime().call(),
+      Auctions.methods.dailyAuctionStartTime().call()
+    ])
+      .then(([nonce, genesisTime, dailyAuctionStartTime]) =>
         logTransaction(
           METToken.methods.importMET(
             toHex(originChain),
