@@ -13,13 +13,13 @@ function create () {
     debug.enabled = config.debug
 
     const web3 = new Web3(plugins.eth.web3Provider)
+    let walletId
 
     function emitBalance (address) {
       web3.eth.getBalance(address)
         .then(function (balance) {
           eventBus.emit('wallet-state-changed', {
-          // walletId is temporarily hardcoded
-            1: {
+            [walletId]: {
               addresses: {
                 [address]: {
                   balance
@@ -37,14 +37,17 @@ function create () {
         })
     }
 
-    eventBus.on('open-wallets', function ({ address }) {
+    eventBus.on('open-wallets', function ({ address, activeWallet }) {
       addresses.push(address)
+      walletId = activeWallet
       emitBalance(address)
     })
 
     eventBus.on('coin-tx', function () {
       addresses.forEach(function (address) {
-        emitBalance(address)
+        if (walletId) {
+          emitBalance(address)
+        }
       })
     })
 

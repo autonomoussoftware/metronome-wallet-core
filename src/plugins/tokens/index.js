@@ -45,6 +45,7 @@ function create () {
     }
 
   let accountAddress
+  let walletId
 
   function start ({ config, eventBus, plugins }) {
     debug.enabled = config.debug
@@ -56,8 +57,7 @@ function create () {
         getTokenBalance(web3, contractAddress, address)
           .then(function (balance) {
             eventBus.emit('wallet-state-changed', {
-            // walletId is temporarily hardcoded
-              1: {
+              [walletId]: {
                 addresses: {
                   [address]: {
                     token: {
@@ -81,14 +81,15 @@ function create () {
       })
     }
 
-    eventBus.on('open-wallets', function ({ address }) {
+    eventBus.on('open-wallets', function ({ address, activeWallet }) {
       accountAddress = address
+      walletId = activeWallet
 
       emitBalances(address)
     })
 
     eventBus.on('coin-tx', function () {
-      if (accountAddress) {
+      if (accountAddress && walletId) {
         emitBalances(accountAddress)
       }
     })

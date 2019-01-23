@@ -76,6 +76,7 @@ function create () {
     })
 
     let pendingEvents = []
+    let walletId
 
     const metasCache = {}
 
@@ -94,17 +95,18 @@ function create () {
     }
 
     function emitTransactions (address, transactions) {
-      eventBus.emit('wallet-state-changed', {
-        // walletId is temporarily hardcoded
-        1: {
-          addresses: {
-            [address]: {
-              transactions: transactions.map(markFailedTransaction)
+      if (walletId) {
+        eventBus.emit('wallet-state-changed', {
+          [walletId]: {
+            addresses: {
+              [address]: {
+                transactions: transactions.map(markFailedTransaction)
+              }
             }
           }
-        }
-      })
-      eventBus.emit('coin-tx')
+        })
+        eventBus.emit('coin-tx')
+      }
     }
 
     function tryEmitTransactions (address, transactions) {
@@ -336,8 +338,9 @@ function create () {
         })
     }
 
-    const syncTransactions = (fromBlock, address) =>
-      started
+    function syncTransactions (fromBlock, address, activeWallet) {
+      walletId = activeWallet
+      return started
         .then(function () {
           debug('Syncing', fromBlock, bestBlock)
           subscribeCoinTransactions(bestBlock, address)
@@ -349,6 +352,7 @@ function create () {
           ])
         })
         .then(([best]) => best)
+    }
 
     function logTransaction (promiEvent, from, meta) {
       // PromiEvent objects shall be wrapped to avoid the promise chain to
