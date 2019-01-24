@@ -46,7 +46,7 @@ function create () {
       .concat(auctionEvents.getEventDataCreator(chainId))
       .concat(converterEvents.getEventDataCreator(chainId))
       // Remove port events due to old name event in mainnet contract
-      // .concat(porterEvents.getEventDataCreator(chainId))
+      .concat(porterEvents.getEventDataCreator(chainId))
       .concat(validatorEvents.getEventDataCreator(chainId))
       .forEach(explorer.registerEvent)
 

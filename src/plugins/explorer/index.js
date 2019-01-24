@@ -264,18 +264,22 @@ function create () {
         } = registration(address)
 
         const contract = new web3.eth.Contract(abi, contractAddress)
-
-        return contract.getPastEvents(eventName, {
-          fromBlock,
-          toBlock,
-          filter
-        })
-          .then(function (events) {
-            debug(`${events.length} past ${eventName} events retrieved`)
-            return Promise.all(
-              events.map(queueAndEmitEvent(address, metaParser))
-            ).then(noop)
+        try {
+          return contract.getPastEvents(eventName, {
+            fromBlock,
+            toBlock,
+            filter
           })
+            .then(function (events) {
+              debug(`${events.length} past ${eventName} events retrieved`)
+              return Promise.all(
+                events.map(queueAndEmitEvent(address, metaParser))
+              ).then(noop)
+            })
+        } catch (e) {
+          debug(`There was an error trying to get past events for ${eventName}`)
+          return Promise.resolve()
+        }
       }))
     }
 
