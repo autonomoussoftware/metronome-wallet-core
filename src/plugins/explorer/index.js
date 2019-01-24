@@ -28,6 +28,7 @@ function create () {
 
   function start ({ config, eventBus, plugins }) {
     debug.enabled = config.debug
+
     const web3 = new Web3(plugins.eth.web3Provider)
 
     function getAndEmitBlock () {
@@ -76,7 +77,12 @@ function create () {
     })
 
     let pendingEvents = []
+
     let walletId
+
+    eventBus.on('open-wallets', function ({ activeWallet }) {
+      walletId = activeWallet
+    })
 
     const metasCache = {}
 
@@ -95,18 +101,20 @@ function create () {
     }
 
     function emitTransactions (address, transactions) {
-      if (walletId) {
-        eventBus.emit('wallet-state-changed', {
-          [walletId]: {
-            addresses: {
-              [address]: {
-                transactions: transactions.map(markFailedTransaction)
-              }
+      if (!walletId) {
+        throw new Error('Wallet ID not set')
+      }
+
+      eventBus.emit('wallet-state-changed', {
+        [walletId]: {
+          addresses: {
+            [address]: {
+              transactions: transactions.map(markFailedTransaction)
             }
           }
-        })
-        eventBus.emit('coin-tx')
-      }
+        }
+      })
+      eventBus.emit('coin-tx')
     }
 
     function tryEmitTransactions (address, transactions) {
@@ -342,8 +350,7 @@ function create () {
         })
     }
 
-    function syncTransactions (fromBlock, address, activeWallet) {
-      walletId = activeWallet
+    function syncTransactions (fromBlock, address) {
       return started
         .then(function () {
           debug('Syncing', fromBlock, bestBlock)

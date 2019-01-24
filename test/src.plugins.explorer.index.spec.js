@@ -34,6 +34,7 @@ describe('Explorer plugin', function () {
 
     const hash = randomTxId()
     const address = randomAddress()
+    const walletId = 1
 
     const transaction = {
       gasPrice: 0,
@@ -52,7 +53,7 @@ describe('Explorer plugin', function () {
     eventBus.on('wallet-state-changed', function (data) {
       try {
         data.should.deep.equal({
-          1: {
+          [walletId]: {
             addresses: {
               [address]: {
                 transactions: [{
@@ -87,6 +88,8 @@ describe('Explorer plugin', function () {
 
     const { api } = explorer.start({ config, eventBus, plugins })
 
+    eventBus.emit('open-wallets', { activeWallet: walletId })
+
     api.refreshTransaction(hash, address)
       .then(end)
       .catch(end)
@@ -113,6 +116,7 @@ describe('Explorer plugin', function () {
     const fromAddress = randomAddress()
     const contractAddress = randomAddress()
     const tokenValue = '1'
+    const walletId = 1
 
     const transaction = {
       gasPrice: 0,
@@ -141,7 +145,7 @@ describe('Explorer plugin', function () {
     eventBus.on('wallet-state-changed', function (data) {
       try {
         data.should.deep.equal({
-          1: {
+          [walletId]: {
             addresses: {
               [address]: {
                 transactions: [{
@@ -184,6 +188,8 @@ describe('Explorer plugin', function () {
     const plugins = { eth: { web3Provider: new MockProvider(responses) } }
 
     const { api } = explorer.start({ config, eventBus, plugins })
+
+    eventBus.emit('open-wallets', { activeWallet: walletId })
 
     const { getEventDataCreators } = require('../src/plugins/tokens/events')
 
