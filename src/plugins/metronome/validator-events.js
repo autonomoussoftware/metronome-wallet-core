@@ -12,11 +12,11 @@ const attestationMetaParser = ({ returnValues }) => ({
 })
 
 const getEventDataCreator = chain => [
-  () => ({
+  address => ({
     contractAddress: MetronomeContracts[chain].Validator.address,
     abi: MetronomeContracts[chain].Validator.abi,
     eventName: 'LogAttestation',
-    filter: { }, // TODO filter my imports only
+    filter: { recipientAddr: address },
     metaParser: attestationMetaParser
   })
 ]
