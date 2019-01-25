@@ -42,7 +42,10 @@ function create () {
     dataStream = null
   }
 
-  return { start, stop }
+  return {
+    start,
+    stop
+  }
 }
 
 module.exports = {

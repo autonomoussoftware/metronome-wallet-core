@@ -29,7 +29,7 @@ function createCore (givenConfig) {
       throw new Error('Wallet Core already initialized')
     }
 
-    debug('Starting', config)
+    debug('Wallet core starting', config)
 
     eventBus = new EventEmitter()
 
@@ -41,15 +41,15 @@ function createCore (givenConfig) {
       }
     }
 
-    const coreApi = {}
     const coreEvents = []
+    const pluginsApi = {}
 
     plugins.forEach(function (plugin) {
-      const params = { config, eventBus, plugins: coreApi }
+      const params = { config, eventBus, plugins: pluginsApi }
       const { api, events, name } = plugin.start(params)
 
       if (api && name) {
-        Object.assign(coreApi, { [name]: api })
+        Object.assign(pluginsApi, { [name]: api })
       }
 
       if (events) {
@@ -66,7 +66,7 @@ function createCore (givenConfig) {
     initialized = true
 
     return {
-      api: coreApi,
+      api: pluginsApi,
       emitter: eventBus,
       events: coreEvents
     }
@@ -86,7 +86,7 @@ function createCore (givenConfig) {
 
     initialized = false
 
-    debug('Stopped')
+    debug('Wallet core stopped')
   }
 
   return {
