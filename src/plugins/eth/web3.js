@@ -8,7 +8,7 @@ function createWeb3 (config) {
 
   const web3 = new Web3(new Web3.providers.WebsocketProvider(
     config.wsApiUrl,
-    { autoReconnect: true, timeout: 30000 }
+    { autoReconnect: true, timeout: config.web3Timeout }
   ))
 
   web3.currentProvider.on('connect', function () {

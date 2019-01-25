@@ -3,7 +3,11 @@
 const EventEmitter = require('events')
 const debug = require('debug')('met-wallet:core')
 
-function createCore (config) {
+const defaultConfig = require('./defaultConfig')
+
+function createCore (givenConfig) {
+  const config = Object.assign(defaultConfig, givenConfig)
+
   const pluginsCreators = [
     require('./plugins/coincap'),
     require('./plugins/eth'),
