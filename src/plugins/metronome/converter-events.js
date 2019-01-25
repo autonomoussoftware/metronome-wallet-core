@@ -9,22 +9,32 @@ const converterMetaParser = ({ event, returnValues }) => ({
   returnedValue: event === 'ConvertMetToEth' ? returnValues.eth : '0'
 })
 
-const getEventDataCreator = chain => [
-  address => ({
-    contractAddress: MetronomeContracts[chain].AutonomousConverter.address,
-    abi: MetronomeContracts[chain].AutonomousConverter.abi,
-    eventName: 'ConvertEthToMet',
-    filter: { from: address },
-    metaParser: converterMetaParser
-  }),
-  address => ({
-    contractAddress: MetronomeContracts[chain].AutonomousConverter.address,
-    abi: MetronomeContracts[chain].AutonomousConverter.abi,
-    eventName: 'ConvertMetToEth',
-    filter: { from: address },
-    metaParser: converterMetaParser
-  })
-]
+function getEventDataCreator (chain) {
+  const {
+    abi,
+    address: contractAddress,
+    birthblock: minBlock
+  } = MetronomeContracts[chain].AutonomousConverter
+
+  return [
+    address => ({
+      abi,
+      contractAddress,
+      eventName: 'ConvertEthToMet',
+      filter: { from: address },
+      metaParser: converterMetaParser,
+      minBlock
+    }),
+    address => ({
+      abi,
+      contractAddress,
+      eventName: 'ConvertMetToEth',
+      filter: { from: address },
+      metaParser: converterMetaParser,
+      minBlock
+    })
+  ]
+}
 
 module.exports = {
   getEventDataCreator,

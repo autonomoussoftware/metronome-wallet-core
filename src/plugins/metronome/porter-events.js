@@ -47,36 +47,48 @@ const importMetaParser = ({ returnValues }) => ({
   }
 })
 
-const getEventDataCreator = chain => [
-  address => ({
-    contractAddress: MetronomeContracts[chain].TokenPorter.address,
-    abi: MetronomeContracts[chain].TokenPorter.abi,
-    eventName: 'LogExportReceipt',
-    filter: { exporter: address },
-    metaParser: exportMetaParser
-  }),
-  address => ({
-    contractAddress: MetronomeContracts[chain].TokenPorter.address,
-    abi: MetronomeContracts[chain].TokenPorter.abi,
-    eventName: 'LogExportReceipt',
-    filter: { destinationRecipientAddr: address },
-    metaParser: exportMetaParser
-  }),
-  address => ({
-    contractAddress: MetronomeContracts[chain].TokenPorter.address,
-    abi: MetronomeContracts[chain].TokenPorter.abi,
-    eventName: 'LogImportRequest',
-    filter: { destinationRecipientAddr: address },
-    metaParser: importRequestMetaParser
-  }),
-  address => ({
-    contractAddress: MetronomeContracts[chain].TokenPorter.address,
-    abi: MetronomeContracts[chain].TokenPorter.abi,
-    eventName: 'LogImport',
-    filter: { destinationRecipientAddr: address },
-    metaParser: importMetaParser
-  })
-]
+function getEventDataCreator (chain) {
+  const {
+    abi,
+    address: contractAddress,
+    birthblock: minBlock
+  } = MetronomeContracts[chain].TokenPorter
+
+  return [
+    address => ({
+      contractAddress,
+      abi,
+      eventName: 'LogExportReceipt',
+      filter: { exporter: address },
+      metaParser: exportMetaParser,
+      minBlock
+    }),
+    address => ({
+      contractAddress,
+      abi,
+      eventName: 'LogExportReceipt',
+      filter: { destinationRecipientAddr: address },
+      metaParser: exportMetaParser,
+      minBlock
+    }),
+    address => ({
+      contractAddress,
+      abi,
+      eventName: 'LogImportRequest',
+      filter: { destinationRecipientAddr: address },
+      metaParser: importRequestMetaParser,
+      minBlock
+    }),
+    address => ({
+      contractAddress,
+      abi,
+      eventName: 'LogImport',
+      filter: { destinationRecipientAddr: address },
+      metaParser: importMetaParser,
+      minBlock
+    })
+  ]
+}
 
 module.exports = {
   getEventDataCreator,

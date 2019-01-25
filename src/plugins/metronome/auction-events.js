@@ -9,15 +9,24 @@ const auctionMetaParser = ({ returnValues }) => ({
   returnedValue: returnValues.refund
 })
 
-const getEventDataCreator = chain => [
-  address => ({
-    contractAddress: MetronomeContracts[chain].Auctions.address,
-    abi: MetronomeContracts[chain].Auctions.abi,
-    eventName: 'LogAuctionFundsIn',
-    filter: { sender: address },
-    metaParser: auctionMetaParser
-  })
-]
+function getEventDataCreator (chain) {
+  const {
+    abi,
+    address: contractAddress,
+    birthblock: minBlock
+  } = MetronomeContracts[chain].Auctions
+
+  return [
+    address => ({
+      abi,
+      contractAddress,
+      eventName: 'LogAuctionFundsIn',
+      filter: { sender: address },
+      metaParser: auctionMetaParser,
+      minBlock
+    })
+  ]
+}
 
 module.exports = {
   getEventDataCreator,

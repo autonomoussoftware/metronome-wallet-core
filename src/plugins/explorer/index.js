@@ -268,14 +268,15 @@ function create () {
           abi,
           eventName,
           filter,
-          metaParser
+          metaParser,
+          minBlock = 0
         } = registration(address)
 
         const contract = new web3.eth.Contract(abi, contractAddress)
         try {
           return contract.getPastEvents(eventName, {
-            fromBlock,
-            toBlock,
+            fromBlock: Math.max(fromBlock, minBlock),
+            toBlock: Math.max(toBlock, minBlock),
             filter
           })
             .then(function (events) {
@@ -285,7 +286,7 @@ function create () {
               ).then(noop)
             })
         } catch (e) {
-          debug(`There was an error trying to get past events for ${eventName}`)
+          debug(`Could not get past events for ${eventName}`, e.message)
           return Promise.resolve()
         }
       }))
@@ -295,6 +296,7 @@ function create () {
       let shallResync = false
       let bestSyncBlock = fromBlock
 
+      const { chainId, symbol } = config
       const {
         getTransactions,
         getTransactionStream
@@ -303,15 +305,15 @@ function create () {
       getTransactionStream(address)
         .on('data', queueAndEmitTransaction(address))
         .on('resync', function () {
-          debug(`Shall resync ${config.symbol} transactions on next block`)
+          debug(`Shall resync ${symbol} transactions on next block`)
           shallResync = true
         })
         .on('error', function (err) {
-          debug(`Shall resync ${config.symbol} transactions on next block`)
+          debug(`Shall resync ${symbol} transactions on next block`)
           shallResync = true
           eventBus.emit('wallet-error', {
             inner: err,
-            message: `Failed to sync transactions (chainId: ${config.chainId})`,
+            message: `Failed to sync transactions (chainId: ${chainId})`,
             meta: { plugin: 'explorer' }
           })
         })
@@ -323,7 +325,8 @@ function create () {
           shallResync = false
           getTransactions(bestSyncBlock, number, address)
             .then(function (transactions) {
-              debug(`${transactions.length} past ${config.symbol} transactions retrieved`)
+              const { length } = transactions
+              debug(`${length} past ${symbol} transactions retrieved`)
               transactions.forEach(queueAndEmitTransaction(address))
               bestSyncBlock = number
             })
@@ -340,11 +343,12 @@ function create () {
     }
 
     function getPastCoinTransactions (fromBlock, toBlock, address) {
+      const { symbol } = config
       const { getTransactions } = indexer(config)
 
       return getTransactions(fromBlock, toBlock, address)
         .then(function (transactions) {
-          debug(`${transactions.length} past ${config.symbol} transactions retrieved`)
+          debug(`${transactions.length} past ${symbol} transactions retrieved`)
           return Promise.all(transactions.map(queueAndEmitTransaction(address)))
             .then(noop)
         })

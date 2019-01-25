@@ -11,15 +11,24 @@ const attestationMetaParser = ({ returnValues }) => ({
   }
 })
 
-const getEventDataCreator = chain => [
-  address => ({
-    contractAddress: MetronomeContracts[chain].Validator.address,
-    abi: MetronomeContracts[chain].Validator.abi,
-    eventName: 'LogAttestation',
-    filter: { recipientAddr: address },
-    metaParser: attestationMetaParser
-  })
-]
+function getEventDataCreator (chain) {
+  const {
+    abi,
+    address: contractAddress,
+    birthblock: minBlock
+  } = MetronomeContracts[chain].Validator
+
+  return [
+    address => ({
+      contractAddress,
+      abi,
+      eventName: 'LogAttestation',
+      filter: { recipientAddr: address },
+      metaParser: attestationMetaParser,
+      minBlock
+    })
+  ]
+}
 
 module.exports = {
   getEventDataCreator
