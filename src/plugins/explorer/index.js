@@ -254,7 +254,7 @@ function create () {
         } catch (err) {
           eventBus.emit('wallet-error', {
             inner: err,
-            message: 'Could not subscribe to event',
+            message: `Could not subscribe to event ${eventName}`,
             meta: { plugin: 'explorer' }
           })
         }
