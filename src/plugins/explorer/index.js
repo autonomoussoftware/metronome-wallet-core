@@ -23,8 +23,10 @@ function create () {
     return { transaction, receipt, meta }
   }
 
-  let blocksStream
+  const subscriptions = []
+
   let bestBlock
+  let blocksStream
 
   function start ({ config, eventBus, plugins }) {
     debug.enabled = config.debug
@@ -220,7 +222,7 @@ function create () {
         }
 
         // Get past events and subscribe to incoming events
-        contract.events[eventName]({ fromBlock, filter })
+        const emitter = contract.events[eventName]({ fromBlock, filter })
           .on('data', queueAndEmitEvent(address, metaParser))
           .on('changed', queueAndEmitEvent(address, metaParser))
           .on('error', function (err) {
@@ -232,6 +234,7 @@ function create () {
               meta: { plugin: 'explorer' }
             })
           })
+        subscriptions.push(emitter)
 
         // Resync on new block or save it as best sync block
         eventBus.on('coin-block', function ({ number }) {
@@ -527,6 +530,14 @@ function create () {
 
   function stop () {
     blocksStream.destroy()
+
+    subscriptions.forEach(function (subscription) {
+      subscription.unsubscribe(function (err) {
+        if (err) {
+          debug('Could not unsubscribe from event', err.message)
+        }
+      })
+    })
   }
 
   return { start, stop }

@@ -77,7 +77,7 @@ function createCore (givenConfig) {
       throw new Error('Wallet Core not initialized')
     }
 
-    plugins.forEach(function (plugin) {
+    plugins.reverse().forEach(function (plugin) {
       plugin.stop()
     })
 

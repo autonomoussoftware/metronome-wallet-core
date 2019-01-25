@@ -37,7 +37,6 @@ function createDataStream (coin, marketId) {
     })
 
   stream.destroy = function () {
-    coincap.off('trades')
     coincap.close()
   }
 
