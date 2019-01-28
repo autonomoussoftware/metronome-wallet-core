@@ -419,6 +419,11 @@ function create () {
           const eventAbi = abi.find(e =>
             e.type === 'event' && e.name === eventName
           )
+
+          if (!eventAbi) {
+            return null
+          }
+
           const signature = web3.eth.abi.encodeEventSignature(eventAbi)
 
           if (log.address !== contractAddress ||
@@ -476,6 +481,9 @@ function create () {
               const eventAbi = abi.find(e =>
                 e.type === 'event' && e.name === eventName
               )
+              if (!eventAbi) {
+                return
+              }
               const signature = web3.eth.abi.encodeEventSignature(eventAbi)
 
               receipt.logs.forEach(function (event) {
