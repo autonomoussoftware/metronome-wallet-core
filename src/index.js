@@ -4,6 +4,7 @@ const EventEmitter = require('events')
 const debug = require('debug')('met-wallet:core')
 
 const defaultConfig = require('./defaultConfig')
+const { merge } = require('lodash')
 
 function createCore (givenConfig) {
   const config = Object.assign(defaultConfig, givenConfig)
@@ -77,7 +78,7 @@ function createCore (givenConfig) {
       throw new Error('Wallet Core not initialized')
     }
 
-    plugins.reverse().forEach(function (plugin) {
+    merge([], plugins).reverse().forEach(function (plugin) {
       plugin.stop()
     })
 
