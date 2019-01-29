@@ -10,7 +10,7 @@ function createCore (givenConfig) {
   const config = Object.assign(defaultConfig, givenConfig)
 
   const pluginsCreators = [
-    require('./plugins/coincap'),
+    require('./plugins/rates'),
     require('./plugins/eth'),
     require('./plugins/explorer'),
     require('./plugins/wallet'),

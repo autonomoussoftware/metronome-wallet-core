@@ -2,19 +2,26 @@
 
 const coincap = require('coincap-lib')
 const EventEmitter = require('events')
+const throttle = require('lodash/throttle')
 
-function createDataStream (coin, marketId) {
+function createDataStream (ticker, minInterval) {
   const stream = new EventEmitter()
 
+  const throttledStreamEmit = throttle(
+    stream.emit.bind(stream),
+    minInterval,
+    { leading: true, trailing: false }
+  )
+
   coincap.on('trades', function (trade) {
-    if (trade.coin !== coin || trade.market_id !== marketId) {
+    if (trade.coin !== ticker || trade.market_id !== `${ticker}_USD`) {
       return
     }
     if (typeof trade.msg.price !== 'number') {
       return
     }
 
-    stream.emit('data', trade.msg.price)
+    throttledStreamEmit('data', trade.msg.price)
   })
   coincap.on('disconnect', function (reason) {
     stream.emit('error', new Error(`Disconnected from CoinCap with ${reason}`))
@@ -24,13 +31,13 @@ function createDataStream (coin, marketId) {
   })
   coincap.open()
 
-  coincap.coin(coin)
+  coincap.coin(ticker)
     .then(function ({ price }) {
       if (typeof price !== 'number') {
         return
       }
 
-      stream.emit('data', price)
+      throttledStreamEmit('data', price)
     })
     .catch(function (err) {
       stream.emit('error', err)

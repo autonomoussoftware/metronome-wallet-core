@@ -2,6 +2,7 @@
   "chainId": 3,
   "debug": false,
   "explorerDebounce": 2000,
+  "ratesSource": "Bittrex",
   "ratesUpdateMs": 30000,
   "symbol": "ETH",
   "web3Timeout": 60000,

@@ -45,12 +45,12 @@ Each plugin can add methods to the `api` object under the plugin's namespace.
 
 The following plugins are bundled:
 
-- `coincap`: Provides ETH to USD exchange rates.
 - `eth`: Provides connectivity with the Ethereum node.
 - `explorer`: Provides notifications and keeps track of new blocks, transactions and events.
-- `wallet`: Provides base key/account management
-- `tokens`: Provides base ERC20 token functions.
 - `metronome`: Provides Metronome-specific functionality as interacting with the auctions, converter and token contracts.
+- `rates`: Provides ETH to USD exchange rates.
+- `tokens`: Provides base ERC20 token functions.
+- `wallet`: Provides base key/account management
 
 ## License
 

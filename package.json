@@ -31,6 +31,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "axios-cookiejar-support": "^0.4.2",
+    "bittrex-node": "^1.1.0",
     "coincap-lib": "^1.0.0",
     "debug": "^4.1.1",
     "delay": "^4.1.0",
