@@ -300,7 +300,7 @@ function create () {
       let shallResync = false
       let bestSyncBlock = fromBlock
 
-      const { chainId, symbol } = config
+      const { symbol, displayName } = config
       const {
         getTransactions,
         getTransactionStream
@@ -317,7 +317,7 @@ function create () {
           shallResync = true
           eventBus.emit('wallet-error', {
             inner: err,
-            message: `Failed to sync transactions (chainId: ${chainId})`,
+            message: `Failed to sync ${displayName} transactions`,
             meta: { plugin: 'explorer' }
           })
         })
