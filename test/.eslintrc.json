@@ -1,5 +1,6 @@
 {
   "extends": [
-    "bloq/test-mocha"
+    "bloq",
+    "bloq/mocha"
   ]
 }

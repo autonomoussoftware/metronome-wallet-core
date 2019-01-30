@@ -1,15 +1,6 @@
 {
-  "env": {
-    "node": true
-  },
   "extends": [
-    "bloq",
-    "bloq/experimental"
+    "bloq"
   ],
-  "root": true,
-  "rules": {
-    "complexity": ["error", 10],
-    "max-params": ["error", 4],
-    "no-shadow": ["error", { "allow": ["err"], "builtinGlobals": true, "hoist": "functions" }]
-  }
+  "root": true
 }
