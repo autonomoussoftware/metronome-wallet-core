@@ -28,7 +28,7 @@ const converterEvents = require('./converter-events')
 const porterEvents = require('./porter-events')
 const validatorEvents = require('./validator-events')
 
-function create () {
+function createPlugin () {
   function start ({ config, eventBus, plugins }) {
     debug.enabled = config.debug
 
@@ -134,6 +134,4 @@ function create () {
   return { start, stop }
 }
 
-module.exports = {
-  create
-}
+module.exports = createPlugin

@@ -9,7 +9,7 @@ const Web3 = require('web3')
 const createStream = require('./blocks-stream')
 const indexer = require('./indexer')
 
-function create () {
+function createPlugin () {
   function markFailedTransaction ({ transaction, receipt, meta }) {
     if (receipt && meta) {
       meta.contractCallFailed = receipt.status === false || (
@@ -551,6 +551,4 @@ function create () {
   return { start, stop }
 }
 
-module.exports = {
-  create
-}
+module.exports = createPlugin

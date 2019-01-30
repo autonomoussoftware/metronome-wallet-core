@@ -5,15 +5,13 @@ const rateStreams = {
   coincap: require('./coincap-stream')
 }
 
-function create () {
+function createPlugin () {
   let dataStream
-  let refCount = 0
 
   function start ({ config, eventBus }) {
     const { ratesSource, ratesUpdateMs, symbol } = config
 
     const createStream = rateStreams[ratesSource.toLowerCase()]
-
     dataStream = createStream(symbol, ratesUpdateMs)
 
     dataStream.on('data', function (price) {
@@ -29,21 +27,16 @@ function create () {
       })
     })
 
-    refCount += 1
-
     return {
       events: [
-        'coin-price-updated'
+        'coin-price-updated',
+        'wallet-error'
       ]
     }
   }
 
   function stop () {
-    refCount -= 1
-
-    if (refCount < 1 && dataStream) {
-      dataStream.destroy()
-    }
+    dataStream.destroy()
   }
 
   return {
@@ -52,6 +45,4 @@ function create () {
   }
 }
 
-module.exports = {
-  create
-}
+module.exports = createPlugin

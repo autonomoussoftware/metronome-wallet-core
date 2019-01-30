@@ -25,7 +25,7 @@ const {
 
 const explorer = proxyquire('../src/plugins/explorer', {
   './indexer': () => ({ getTransactions: () => Promise.resolve([]) })
-}).create()
+})()
 
 const should = chai.use(chaiAsPromised).should()
 

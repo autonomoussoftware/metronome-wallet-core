@@ -1,46 +1,43 @@
 'use strict'
 
-const EventEmitter = require('events')
+const { merge, union } = require('lodash')
 const debug = require('debug')('met-wallet:core')
+const EventEmitter = require('events')
 
 const defaultConfig = require('./defaultConfig')
-const { merge } = require('lodash')
 
-function createCore (givenConfig) {
-  const config = Object.assign(defaultConfig, givenConfig)
+const plugins = [
+  require('./plugins/rates'),
+  require('./plugins/eth'),
+  require('./plugins/explorer'),
+  require('./plugins/wallet'),
+  require('./plugins/tokens'),
+  require('./plugins/metronome')
+].map(create => create())
 
-  const pluginsCreators = [
-    require('./plugins/rates'),
-    require('./plugins/eth'),
-    require('./plugins/explorer'),
-    require('./plugins/wallet'),
-    require('./plugins/tokens'),
-    require('./plugins/metronome')
-  ]
-
-  const plugins = pluginsCreators.map(plugin => plugin.create())
-
+function createCore () {
   let eventBus
   let initialized = false
 
-  function start () {
-    debug.enabled = config.debug
-
+  function start (givenConfig) {
     if (initialized) {
       throw new Error('Wallet Core already initialized')
     }
 
-    debug('Wallet core starting', config)
+    const config = merge({}, defaultConfig, givenConfig)
 
     eventBus = new EventEmitter()
 
-    if (debug.enabled) {
+    debug.enabled = config.debug
+    if (config.debug) {
       const emit = eventBus.emit.bind(eventBus)
       eventBus.emit = function (eventName, ...args) {
         debug('<<--', eventName, ...args)
         emit(eventName, ...args)
       }
     }
+
+    debug('Wallet core starting', config)
 
     const coreEvents = []
     const pluginsApi = {}
@@ -50,15 +47,11 @@ function createCore (givenConfig) {
       const { api, events, name } = plugin.start(params)
 
       if (api && name) {
-        Object.assign(pluginsApi, { [name]: api })
+        pluginsApi[name] = api
       }
 
       if (events) {
-        events.forEach(function (event) {
-          if (!coreEvents.includes(event)) {
-            coreEvents.push(event)
-          }
-        })
+        union(coreEvents, events)
       }
     })
 
@@ -78,7 +71,7 @@ function createCore (givenConfig) {
       throw new Error('Wallet Core not initialized')
     }
 
-    merge([], plugins).reverse().forEach(function (plugin) {
+    [].concat(plugins).reverse().forEach(function (plugin) {
       plugin.stop()
     })
 
@@ -96,6 +89,4 @@ function createCore (givenConfig) {
   }
 }
 
-module.exports = {
-  createCore
-}
+module.exports = createCore

@@ -1,8 +1,8 @@
 'use strict'
 
+const { throttle } = require('lodash')
 const coincap = require('coincap-lib')
 const EventEmitter = require('events')
-const throttle = require('lodash/throttle')
 
 function createDataStream (ticker, minInterval) {
   const stream = new EventEmitter()

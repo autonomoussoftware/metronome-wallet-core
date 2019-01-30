@@ -5,7 +5,7 @@ const debug = require('debug')('met-wallet:core:eth')
 const { checkChainId } = require('./chain')
 const { createWeb3, destroyWeb3 } = require('./web3')
 
-function create () {
+function createPlugin () {
   let web3 = null
 
   function start ({ config, eventBus }) {
@@ -27,6 +27,9 @@ function create () {
       api: {
         web3Provider: web3.currentProvider
       },
+      events: [
+        'wallet-error'
+      ],
       name: 'eth'
     }
   }
@@ -36,9 +39,10 @@ function create () {
     web3 = null
   }
 
-  return { start, stop }
+  return {
+    start,
+    stop
+  }
 }
 
-module.exports = {
-  create
-}
+module.exports = createPlugin

@@ -7,7 +7,7 @@ const Web3 = require('web3')
 const abi = require('./erc20-abi.json')
 const events = require('./events')
 
-function create () {
+function createPlugin () {
   const tokens = []
 
   const registerToken = ({ explorer }) =>
@@ -103,6 +103,9 @@ function create () {
           transfer: events.transferMetaParser
         }
       },
+      events: [
+        'wallet-error'
+      ],
       name: 'tokens'
     }
   }
@@ -114,6 +117,4 @@ function create () {
   return { start, stop }
 }
 
-module.exports = {
-  create
-}
+module.exports = createPlugin
