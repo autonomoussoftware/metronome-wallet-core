@@ -6,7 +6,7 @@ const Web3 = require('web3')
 const api = require('./api')
 const hdkey = require('./hdkey')
 
-function create () {
+function createPlugin () {
   let addresses = []
 
   function start ({ config, eventBus, plugins }) {
@@ -77,6 +77,4 @@ function create () {
   return { start, stop }
 }
 
-module.exports = {
-  create
-}
+module.exports = createPlugin

@@ -2,8 +2,8 @@
 
 const debug = require('debug')('met-wallet:core:eth')
 
-const { checkChainId } = require('./chain')
 const { createWeb3, destroyWeb3 } = require('./web3')
+const checkChain = require('./check-chain')
 
 function createPlugin () {
   let web3 = null
@@ -11,10 +11,9 @@ function createPlugin () {
   function start ({ config, eventBus }) {
     debug.enabled = config.debug
 
-    web3 = createWeb3(config)
+    web3 = createWeb3(config, eventBus)
 
-    checkChainId(web3, config.chainId)
-      .then(match => !match && Promise.reject(new Error('Wrong chain')))
+    checkChain(web3, config.chainId)
       .catch(function (err) {
         eventBus.emit('wallet-error', {
           inner: err,
@@ -28,7 +27,8 @@ function createPlugin () {
         web3Provider: web3.currentProvider
       },
       events: [
-        'wallet-error'
+        'wallet-error',
+        'web3-connection-status-changed'
       ],
       name: 'eth'
     }
