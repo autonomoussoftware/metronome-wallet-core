@@ -7,7 +7,6 @@ const checkChain = require('../src/plugins/eth/check-chain')
 
 chai.use(chaiAsPromised).should()
 
-// web3.eth.net.getId()
 const mockWeb3 = ({ id }) => ({
   eth: {
     net: {

@@ -92,7 +92,7 @@ function createPlugin () {
 
     function fillInStatus ({ transaction, receipt, meta }) {
       if (receipt && meta) {
-        meta.contractCallFailed = getTransactionStatus(transaction, receipt)
+        meta.contractCallFailed = !getTransactionStatus(transaction, receipt)
       }
       return { transaction, receipt, meta }
     }
