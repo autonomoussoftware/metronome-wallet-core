@@ -18,7 +18,7 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
     axios(`/addresses/${address}/transactions`, { params: { from, to } })
       .then(res => res.data)
 
-  const getCookie = pRetry(
+  const getCookiePromise = pRetry(
     () => axios.get('/blocks/best'),
     {
       forever: true,
@@ -38,7 +38,7 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
   function getTransactionStream (address) {
     const stream = new EventEmitter()
 
-    getCookie()
+    getCookiePromise
       .then(function () {
         const socket = getSocket()
 
