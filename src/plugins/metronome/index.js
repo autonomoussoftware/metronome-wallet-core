@@ -4,7 +4,10 @@ const debug = require('debug')('met-wallet:core:metronome')
 const MetronomeContracts = require('metronome-contracts')
 const Web3 = require('web3')
 
-const { buyMet, estimateAuctionGas } = require('./auction-api')
+const {
+  buyMet,
+  estimateAuctionGas
+} = require('./auction-api')
 const {
   convertCoin,
   convertMet,
@@ -13,7 +16,9 @@ const {
   getCoinToMetEstimate,
   getMetToMetEstimate
 } = require('./converter-api')
-const { getExportMetFee } = require('./porter-api')
+const {
+  getExportMetFee
+} = require('./porter-api')
 const {
   estimateExportMetGas,
   estimateImportMetGas,
@@ -35,12 +40,16 @@ function createPlugin () {
     const { chainId, gasOverestimation } = config
     const { eth, explorer, tokens } = plugins
 
+    const web3 = new Web3(eth.web3Provider)
+
+    // Register MET token
     tokens.registerToken(MetronomeContracts[chainId].METToken.address, {
       decimals: 18,
       name: 'Metronome',
       symbol: 'MET'
     })
 
+    // Register all MET events
     const events = []
     events
       .concat(auctionEvents.getEventDataCreator(chainId))
@@ -49,8 +58,7 @@ function createPlugin () {
       .concat(validatorEvents.getEventDataCreator(chainId))
       .forEach(explorer.registerEvent)
 
-    const web3 = new Web3(eth.web3Provider)
-
+    // Start emitting MET status
     const emitMetronomeStatus = () =>
       Promise.all([
         getAuctionStatus(web3, chainId)
@@ -74,6 +82,7 @@ function createPlugin () {
 
     eventBus.on('coin-block', emitMetronomeStatus)
 
+    // Collect meta parsers
     const metaParsers = Object.assign(
       {
         auction: auctionEvents.auctionMetaParser,
@@ -85,12 +94,14 @@ function createPlugin () {
       tokens.metaParsers
     )
 
+    // Define gas over-estimation wrapper
     const over = fn =>
       (...args) =>
         fn(...args).then(gas =>
           ({ gasLimit: Math.round(gas * gasOverestimation) })
         )
 
+    // Build and return API
     return {
       api: {
         buyMetronome: buyMet(
@@ -147,9 +158,12 @@ function createPlugin () {
     }
   }
 
-  function stop () { }
+  function stop () {}
 
-  return { start, stop }
+  return {
+    start,
+    stop
+  }
 }
 
 module.exports = createPlugin
