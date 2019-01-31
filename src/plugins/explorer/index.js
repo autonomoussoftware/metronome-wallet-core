@@ -8,21 +8,9 @@ const Web3 = require('web3')
 
 const createStream = require('./blocks-stream')
 const indexer = require('./indexer')
+const getTransactionStatus = require('./transaction-status')
 
 function createPlugin () {
-  function markFailedTransaction ({ transaction, receipt, meta }) {
-    if (receipt && meta) {
-      meta.contractCallFailed = receipt.status === false || (
-        receipt.status === null && // no Byzantinum fork
-        transaction.input !== '0x' && // is contract call
-        transaction.gas === receipt.gasUsed && // used all gas
-        !receipt.logs.length // and no any logs
-      )
-    }
-
-    return { transaction, receipt, meta }
-  }
-
   const subscriptions = []
 
   let bestBlock
@@ -53,9 +41,9 @@ function createPlugin () {
 
     const started = getAndEmitBlock()
 
-    blocksStream = createStream(web3)
-
     let intervalId
+
+    blocksStream = createStream(web3)
 
     blocksStream.on('data', function (header) {
       clearInterval(intervalId)
@@ -102,6 +90,13 @@ function createPlugin () {
       return events.map(event => event.done || noop)
     }
 
+    function fillInStatus ({ transaction, receipt, meta }) {
+      if (receipt && meta) {
+        meta.contractCallFailed = getTransactionStatus(transaction, receipt)
+      }
+      return { transaction, receipt, meta }
+    }
+
     function emitTransactions (address, transactions) {
       if (!walletId) {
         throw new Error('Wallet ID not set')
@@ -111,7 +106,7 @@ function createPlugin () {
         [walletId]: {
           addresses: {
             [address]: {
-              transactions: transactions.map(markFailedTransaction)
+              transactions: transactions.map(fillInStatus)
             }
           }
         }
@@ -548,7 +543,10 @@ function createPlugin () {
     })
   }
 
-  return { start, stop }
+  return {
+    start,
+    stop
+  }
 }
 
 module.exports = createPlugin

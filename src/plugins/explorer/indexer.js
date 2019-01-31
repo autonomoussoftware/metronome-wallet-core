@@ -1,52 +1,47 @@
 'use strict'
 
 const { CookieJar } = require('tough-cookie')
-const createAxios = require('axios').create
-const axiosCookieJarSupport = require('axios-cookiejar-support').default
 const debug = require('debug')('met-wallet:core:explorer:indexer')
-const delay = require('delay')
 const EventEmitter = require('events')
 const io = require('socket.io-client')
+const pRetry = require('p-retry')
+
+const createAxiosCookiejar = require('./axios-cookiejar')
 
 function createIndexer ({ debug: enableDebug, indexerUrl }) {
   debug.enabled = enableDebug
 
   const jar = new CookieJar()
+  const axios = createAxiosCookiejar({ baseURL: indexerUrl }, jar)
 
-  const axios = createAxios({
-    baseURL: indexerUrl,
-    jar,
-    withCredentials: true
-  })
-
-  axiosCookieJarSupport(axios)
-
-  const getTransactions = (fromBlock, toBlock, address) =>
-    axios(`/addresses/${address}/transactions`, {
-      params: { from: fromBlock, to: toBlock }
-    })
+  const getTransactions = (from, to, address) =>
+    axios(`/addresses/${address}/transactions`, { params: { from, to } })
       .then(res => res.data)
 
-  const getSocket = baseURL =>
-    axios.get('/blocks/best')
-      .then(() =>
-        io(`${baseURL}/v1`, {
-          autoConnect: false,
-          extraHeaders: { Cookie: jar.getCookiesSync(baseURL).join(';') }
-        })
-      )
-      .catch(function (err) {
+  const getCookie = pRetry(
+    () => axios.get('/blocks/best'),
+    {
+      forever: true,
+      maxTimeout: 5000,
+      onFailedAttempt (err) {
         debug('Failed to get indexer cookie', err.message)
+      }
+    }
+  )
 
-        return delay(5000)
-          .then(getSocket)
-      })
+  const getSocket = () =>
+    io(`${indexerUrl}/v1`, {
+      autoConnect: false,
+      extraHeaders: { Cookie: jar.getCookiesSync(indexerUrl).join(';') }
+    })
 
   function getTransactionStream (address) {
     const stream = new EventEmitter()
 
-    getSocket(indexerUrl)
-      .then(function (socket) {
+    getCookie()
+      .then(function () {
+        const socket = getSocket()
+
         socket.on('connect', function () {
           socket.emit(
             'subscribe',
@@ -59,6 +54,12 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
           )
         })
 
+        socket.on('tx', function ({ type, txid }) {
+          if (type === 'eth') {
+            stream.emit('data', txid)
+          }
+        })
+
         socket.on('disconnect', function (reason) {
           stream.emit('error', new Error(`Indexer disconnected with ${reason}`))
         })
@@ -69,12 +70,6 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
 
         socket.on('error', function (err) {
           stream.emit('error', err)
-        })
-
-        socket.on('tx', function ({ type, txid }) {
-          if (type === 'eth') {
-            stream.emit('data', txid)
-          }
         })
 
         socket.open()
