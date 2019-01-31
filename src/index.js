@@ -1,6 +1,6 @@
 'use strict'
 
-const { merge, union } = require('lodash')
+const { merge, without } = require('lodash')
 const debug = require('debug')('met-wallet:core')
 const EventEmitter = require('events')
 
@@ -51,7 +51,9 @@ function createCore () {
       }
 
       if (events) {
-        union(coreEvents, events)
+        without(events, coreEvents).forEach(function (event) {
+          coreEvents.push(event)
+        })
       }
     })
 
