@@ -7,8 +7,6 @@ const MetronomeContracts = require('metronome-contracts')
 
 const { getExportMetFee } = require('./porter-api')
 
-const OVER_ESTIMATION = 1.1
-
 function getMerkleRoot (hashes) {
   const leaves = hashes.map(x => Buffer.from(x.slice(2), 'hex'))
   const tree = new MerkleTreeJs(leaves, data =>
@@ -37,7 +35,6 @@ function estimateExportMetGas (web3, chain) {
       fee,
       extraData
     ).estimateGas({ from })
-      .then(gas => Math.round(gas * OVER_ESTIMATION))
   }
 }
 
@@ -81,7 +78,6 @@ function estimateImportMetGas (web3, chain) {
       ],
       getMerkleRoot([previousBurnHash, currentBurnHash])
     ).estimateGas({ from })
-      .then(gas => Math.round(gas * OVER_ESTIMATION))
   }
 }
 

@@ -32,7 +32,7 @@ function createPlugin () {
   function start ({ config, eventBus, plugins }) {
     debug.enabled = config.debug
 
-    const { chainId } = config
+    const { chainId, gasOverestimation } = config
     const { eth, explorer, tokens } = plugins
 
     tokens.registerToken(MetronomeContracts[chainId].METToken.address, {
@@ -85,6 +85,12 @@ function createPlugin () {
       tokens.metaParsers
     )
 
+    const over = fn =>
+      (...args) =>
+        fn(...args).then(gas =>
+          ({ gasLimit: Math.round(gas * gasOverestimation) })
+        )
+
     return {
       api: {
         buyMetronome: buyMet(
@@ -99,26 +105,38 @@ function createPlugin () {
           explorer.logTransaction,
           metaParsers
         ),
-        convertMet: convertMet(web3,
+        convertMet: convertMet(
+          web3,
           chainId,
           explorer.logTransaction,
           metaParsers
         ),
         getExportMetFee: getExportMetFee(web3, chainId),
-        estimateExportMetGas: estimateExportMetGas(web3, chainId),
-        estimateImportMetGas: estimateImportMetGas(web3, chainId),
+        estimateExportMetGas: over(estimateExportMetGas(web3, chainId)),
+        estimateImportMetGas: over(estimateImportMetGas(web3, chainId)),
         exportMet: exportMet(
-          web3, chainId, explorer.logTransaction, metaParsers
+          web3,
+          chainId,
+          explorer.logTransaction,
+          metaParsers
         ),
-        getAuctionGasLimit: estimateAuctionGas(web3, chainId),
+        getAuctionGasLimit: over(estimateAuctionGas(web3, chainId)),
         getConvertCoinEstimate: getCoinToMetEstimate(web3, chainId),
-        getConvertCoinGasLimit: estimateCoinToMetGas(web3, chainId),
+        getConvertCoinGasLimit: over(estimateCoinToMetGas(web3, chainId)),
         getConvertMetEstimate: getMetToMetEstimate(web3, chainId),
-        getConvertMetGasLimit: estimateMetToCoinGas(web3, chainId),
+        getConvertMetGasLimit: over(estimateMetToCoinGas(web3, chainId)),
         importMet: importMet(
-          web3, chainId, explorer.logTransaction, metaParsers
+          web3,
+          chainId,
+          explorer.logTransaction,
+          metaParsers
         ),
-        sendMet: sendMet(web3, chainId, explorer.logTransaction, metaParsers)
+        sendMet: sendMet(
+          web3,
+          chainId,
+          explorer.logTransaction,
+          metaParsers
+        )
       },
       events: [
         'auction-status-updated',

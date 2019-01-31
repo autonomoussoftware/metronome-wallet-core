@@ -3,14 +3,11 @@
 const MetronomeContracts = require('metronome-contracts')
 const { utils: { toBN } } = require('web3')
 
-const OVER_ESTIMATION = 1.1
-
 function estimateCoinToMetGas (web3, chain) {
   const { AutonomousConverter } = new MetronomeContracts(web3, chain)
   return ({ from, value, minReturn = '1' }) =>
     AutonomousConverter.methods.convertEthToMet(minReturn)
       .estimateGas({ from, value })
-      .then(gasLimit => ({ gasLimit: Math.round(gasLimit * OVER_ESTIMATION) }))
 }
 
 function estimateMetToCoinGas (web3, chain) {
@@ -18,7 +15,6 @@ function estimateMetToCoinGas (web3, chain) {
   return ({ from, value, minReturn = '1' }) =>
     AutonomousConverter.methods.convertMetToEth(value, minReturn)
       .estimateGas({ from })
-      .then(gasLimit => ({ gasLimit: Math.round(gasLimit * OVER_ESTIMATION) }))
 }
 
 function getCoinToMetEstimate (web3, chain) {
