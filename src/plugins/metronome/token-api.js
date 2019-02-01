@@ -86,9 +86,8 @@ function addAccount (web3, privateKey) {
     .add(web3.eth.accounts.privateKeyToAccount(privateKey))
 }
 
-function getNextNonce (web3, from) {
-  return web3.eth.getTransactionCount(from, 'pending')
-}
+const getNextNonce = (web3, from) =>
+  web3.eth.getTransactionCount(from, 'pending')
 
 function sendMet (web3, chain, logTransaction, metaParsers) {
   const { METToken } = new MetronomeContracts(web3, chain)

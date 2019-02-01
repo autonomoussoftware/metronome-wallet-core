@@ -1,6 +1,10 @@
 {
   "extends": [
-    "bloq"
+    "bloq",
+    "bloq/controvertial"
   ],
-  "root": true
+  "root": true,
+  "rules": {
+    "no-magic-numbers": "off"
+  }
 }

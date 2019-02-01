@@ -3,6 +3,14 @@
 function createStream (web3) {
   const subscription = web3.eth.subscribe('newBlockHeaders')
 
+  web3.eth.getBlock('latest')
+    .then(function (block) {
+      subscription.emit('coin-block', block)
+    })
+    .catch(function (err) {
+      subscription.emit('error', err)
+    })
+
   subscription.destroy = subscription.unsubscribe
 
   return subscription
