@@ -11,6 +11,8 @@ const createAxiosCookiejar = require('./axios-cookiejar')
 function createIndexer ({ debug: enableDebug, indexerUrl }) {
   debug.enabled = enableDebug
 
+  let socket
+
   const jar = new CookieJar()
   const axios = createAxiosCookiejar({ baseURL: indexerUrl }, jar)
 
@@ -40,7 +42,7 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
 
     getCookiePromise
       .then(function () {
-        const socket = getSocket()
+        socket = getSocket()
 
         socket.on('connect', function () {
           socket.emit(
@@ -81,7 +83,12 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
     return stream
   }
 
+  function disconnect () {
+    socket.close()
+  }
+
   return {
+    disconnect,
     getTransactions,
     getTransactionStream
   }

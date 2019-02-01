@@ -3,16 +3,16 @@
 const debug = require('debug')('met-wallet:core:explorer:syncer')
 const pDefer = require('p-defer')
 
-const indexer = require('./indexer')
-
 // eslint-disable-next-line max-params
-function createSyncer (config, eventBus, web3, queue, eventsRegistry) {
+function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
   debug.enabled = config.debug
 
   const deferred = pDefer()
   const gotBestBlockPromise = deferred.promise
 
   let bestBlock
+
+  const { getTransactions, getTransactionStream } = indexer
 
   eventBus.once('coin-block', function (header) {
     bestBlock = header.number
@@ -25,10 +25,6 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry) {
     let bestSyncBlock = fromBlock
 
     const { symbol, displayName } = config
-    const {
-      getTransactions,
-      getTransactionStream
-    } = indexer(config)
 
     getTransactionStream(address)
       .on('data', queue.addTransaction(address))
@@ -72,7 +68,6 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry) {
 
   function getPastCoinTransactions (fromBlock, toBlock, address) {
     const { symbol } = config
-    const { getTransactions } = indexer(config)
 
     return getTransactions(fromBlock, toBlock, address)
       .then(function (transactions) {

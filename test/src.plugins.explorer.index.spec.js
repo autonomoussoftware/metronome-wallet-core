@@ -387,7 +387,8 @@ describe('Explorer plugin', function () {
 
       eventBus.once('coin-block', function () {
         api.refreshAllTransactions(randomAddress())
-          .then(() => end())
+          .then(noop)
+          .then(end)
           .catch(end)
       })
     })

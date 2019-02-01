@@ -8,11 +8,13 @@ const createEventsRegistry = require('./events')
 const createQueue = require('./queue')
 const createStream = require('./blocks-stream')
 const createTransactionSyncer = require('./sync-transactions')
+const createIndexer = require('./indexer')
 const refreshTransaction = require('./refresh-transactions')
 const tryParseEventLog = require('./parse-log')
 
 function createPlugin () {
   let blocksStream
+  let indexer
   let syncer
 
   function start ({ config, eventBus, plugins }) {
@@ -23,12 +25,15 @@ function createPlugin () {
     const eventsRegistry = createEventsRegistry()
     const queue = createQueue(config, eventBus, web3)
 
+    indexer = createIndexer(config)
+
     syncer = createTransactionSyncer(
       config,
       eventBus,
       web3,
       queue,
-      eventsRegistry
+      eventsRegistry,
+      indexer
     )
 
     debug('Initiating blocks stream')
@@ -97,6 +102,7 @@ function createPlugin () {
 
   function stop () {
     blocksStream.destroy()
+    indexer.disconnect()
     syncer.stop()
   }
 

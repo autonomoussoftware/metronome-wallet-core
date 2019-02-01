@@ -5,7 +5,7 @@ function createStream (web3) {
 
   web3.eth.getBlock('latest')
     .then(function (block) {
-      subscription.emit('coin-block', block)
+      subscription.emit('data', block)
     })
     .catch(function (err) {
       subscription.emit('error', err)
