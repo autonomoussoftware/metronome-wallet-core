@@ -27,15 +27,13 @@ const refreshTransaction = (web3, eventsRegistry, queue) =>
           const tryParseEventLog = createTryParseEventLog(web3, eventsRegistry)
 
           receipt.logs.forEach(function (log) {
-            const parserdLog = tryParseEventLog(log, address)
-
-            if (parserdLog) {
+            tryParseEventLog(log, address).forEach(function (parsedLog) {
               const {
                 contractAddress,
                 filter,
                 metaParser,
                 parsed: { event, returnValues }
-              } = parserdLog
+              } = parsedLog
 
               if (isMatch(returnValues, filter)) {
                 pending.push(queue.addEvent(address, metaParser)({
@@ -45,7 +43,7 @@ const refreshTransaction = (web3, eventsRegistry, queue) =>
                   transactionHash: hash
                 }))
               }
-            }
+            })
           })
         }
 

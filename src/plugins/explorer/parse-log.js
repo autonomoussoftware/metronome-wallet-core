@@ -43,6 +43,6 @@ const tryParseEventLog = (web3, eventsRegistry) =>
         })
       }
     })
-      .find(data => !!data)
+      .filter(data => !!data)
 
 module.exports = tryParseEventLog

@@ -1,6 +1,7 @@
 'use strict'
 
 const {
+  noop,
   once
 } = require('lodash')
 const chai = require('chai')
@@ -109,6 +110,7 @@ describe('Explorer plugin', function () {
       eventBus.emit('open-wallets', { activeWallet: walletId })
 
       api.refreshTransaction(hash, address)
+        .then(noop)
         .then(end)
         .catch(end)
     })
@@ -213,6 +215,7 @@ describe('Explorer plugin', function () {
       getEventDataCreators(contractAddress).map(api.registerEvent)
 
       api.refreshTransaction(hash, address)
+        .then(noop)
         .then(end)
         .catch(end)
     })
