@@ -22,7 +22,7 @@ function createPlugin () {
     dataStream.on('error', function (err) {
       eventBus.emit('wallet-error', {
         inner: err,
-        message: err.message,
+        message: `Could not get exchange rate for ${symbol}`,
         meta: { plugin: 'rates' }
       })
     })

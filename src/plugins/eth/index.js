@@ -17,7 +17,7 @@ function createPlugin () {
       .catch(function (err) {
         eventBus.emit('wallet-error', {
           inner: err,
-          message: err.message || 'Could not get chain ID',
+          message: 'Could not check chain ID',
           meta: { plugin: 'eth' }
         })
       })
