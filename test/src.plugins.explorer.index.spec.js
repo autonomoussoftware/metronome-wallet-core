@@ -30,7 +30,7 @@ const explorer = proxyquire('../src/plugins/explorer', {
 
 const should = chai.use(chaiAsPromised).should()
 
-const config = { debug: true, explorer: { debuounce: 100 } }
+const config = { debug: true, explorerDebounce: 50 }
 const web3 = new Web3()
 
 describe('Explorer plugin', function () {
@@ -41,18 +41,20 @@ describe('Explorer plugin', function () {
       const end = once(function (err) {
         if (err) {
           done(err)
-        } else if (stateChanged === false) {
-          done(new Error('State not changed'))
-        } else {
+        }
+        try {
+          stateChanged.should.equal(true, 'State not changed')
           done()
+        } catch (err) {
+          done(err)
         }
         explorer.stop()
       })
 
       const eventBus = new EventEmitter()
 
-      const hash = randomTxId()
       const address = randomAddress()
+      const hash = randomTxId()
       const walletId = 1
 
       const transaction = {
@@ -121,20 +123,22 @@ describe('Explorer plugin', function () {
       const end = once(function (err) {
         if (err) {
           done(err)
-        } else if (stateChanged === false) {
-          done(new Error('State not changed'))
-        } else {
+        }
+        try {
+          stateChanged.should.equal(true, 'State not changed')
           done()
+        } catch (err) {
+          done(err)
         }
         explorer.stop()
       })
 
       const eventBus = new EventEmitter()
 
-      const hash = randomTxId()
       const address = randomAddress()
-      const fromAddress = randomAddress()
       const contractAddress = randomAddress()
+      const fromAddress = randomAddress()
+      const hash = randomTxId()
       const tokenValue = '1'
       const walletId = 1
 
@@ -228,8 +232,8 @@ describe('Explorer plugin', function () {
 
       const eventBus = new EventEmitter()
 
-      const hash = randomTxId()
       const address = randomAddress()
+      const hash = randomTxId()
 
       const transaction = {
         gasPrice: 0,
@@ -272,22 +276,23 @@ describe('Explorer plugin', function () {
       const end = once(function (err) {
         if (err) {
           done(err)
-        } else if (stateChanged) {
-          done(new Error('State changed'))
-        } else if (errorFired === false) {
-          done(new Error('Error not fired'))
-        } else {
+        }
+        try {
+          stateChanged.should.equal(false, 'State changed')
+          errorFired.should.equal(true, 'Error not fired')
           done()
+        } catch (err) {
+          done(err)
         }
         explorer.stop()
       })
 
       const eventBus = new EventEmitter()
 
-      const hash = randomTxId()
       const address = randomAddress()
-      const toAddress = randomAddress()
       const contractAddress = randomAddress()
+      const hash = randomTxId()
+      const toAddress = randomAddress()
       const tokenValue = '1'
 
       const { eth } = web3
@@ -358,11 +363,7 @@ describe('Explorer plugin', function () {
       const eventBus = new EventEmitter()
       const plugins = { eth: { web3Provider: new MockProvider(responses) } }
 
-      const { api } = explorer.start({
-        config,
-        eventBus,
-        plugins
-      })
+      const { api } = explorer.start({ config, eventBus, plugins })
 
       getEventDataCreator(chain).map(api.registerEvent)
 
@@ -392,5 +393,205 @@ describe('Explorer plugin', function () {
           .catch(end)
       })
     })
+  })
+
+  describe('logTransaction', function () {
+    it('should queue a promise', function (done) {
+      let receiptReceived = false
+      let promiseResolved = false
+
+      const end = once(function (err) {
+        if (err) {
+          done(err)
+          return
+        }
+        try {
+          receiptReceived.should.equal(true, 'Receipt not received')
+          promiseResolved.should.equal(true, 'Promise not resolved')
+          done()
+        } catch (err) {
+          // ignore error
+        }
+        explorer.stop()
+      })
+
+      const eventBus = new EventEmitter()
+
+      const address = randomAddress()
+      const hash = randomTxId()
+      const walletId = 1
+
+      const transaction = {
+        gasPrice: 0,
+        hash,
+        value: 0
+      }
+      const receipt = {
+        from: address,
+        logs: [],
+        to: randomAddress(),
+        transactionHash: hash
+      }
+
+      const promise = Promise.resolve(receipt)
+
+      eventBus.on('wallet-error', function (err) {
+        end(new Error(err.message))
+      })
+      eventBus.on('wallet-state-changed', function (_data) {
+        try {
+          _data.should.deep.equal({
+            [walletId]: {
+              addresses: {
+                [address]: {
+                  transactions: [{
+                    transaction,
+                    receipt,
+                    meta: {
+                      contractCallFailed: false
+                    }
+                  }]
+                }
+              }
+            }
+          })
+          receiptReceived = true
+          end()
+        } catch (err) {
+          end(err)
+        }
+      })
+
+      const responses = {
+        eth_getBlockByNumber: () => ({ number: 0 }),
+        eth_getTransactionByHash (_hash) {
+          _hash.should.equal(hash)
+          return transaction
+        },
+        eth_getTransactionReceipt (_hash) {
+          _hash.should.equal(hash)
+          return receipt
+        }
+      }
+
+      const plugins = { eth: { web3Provider: new MockProvider(responses) } }
+
+      const { api } = explorer.start({ config, eventBus, plugins })
+
+      eventBus.emit('open-wallets', { activeWallet: walletId })
+
+      api.logTransaction(promise, address)
+        .then(function ({ receipt: _receipt }) {
+          _receipt.should.deep.equal(receipt)
+          promiseResolved = true
+        })
+        .catch(end)
+    })
+  })
+
+  it('should queue a PromiEvent', function (done) {
+    let hashReceived = false
+    let receiptReceived = false
+    let promiseResolved = false
+
+    const end = once(function (err) {
+      if (err) {
+        done(err)
+        return
+      }
+      try {
+        hashReceived.should.equal(true, 'Transaction hash not received')
+        receiptReceived.should.equal(true, 'Receipt not received')
+        promiseResolved.should.equal(true, 'Promise not resolved')
+        done()
+      } catch (err) {
+        // ignore error
+      }
+      explorer.stop()
+    })
+
+    const eventBus = new EventEmitter()
+
+    const address = randomAddress()
+    const hash = randomTxId()
+    const walletId = 1
+
+    const transaction = {
+      gasPrice: 0,
+      hash,
+      value: 0
+    }
+    const receipt = {
+      from: address,
+      logs: [],
+      to: randomAddress(),
+      transactionHash: hash
+    }
+
+    const promiEvent = new EventEmitter()
+
+    eventBus.on('wallet-error', function (err) {
+      end(new Error(err.message))
+    })
+    eventBus.on('wallet-state-changed', function (_data) {
+      const data = {
+        [walletId]: {
+          addresses: {
+            [address]: {
+              transactions: [{
+                transaction,
+                receipt: null,
+                meta: {}
+              }]
+            }
+          }
+        }
+      }
+      if (hashReceived) {
+        data[walletId].addresses[address].transactions[0].receipt = receipt
+        data[walletId].addresses[address].transactions[0].meta = {
+          contractCallFailed: false
+        }
+      }
+      try {
+        _data.should.deep.equal(data)
+        if (hashReceived) {
+          receiptReceived = true
+          end()
+        } else {
+          hashReceived = true
+          promiEvent.emit('receipt', receipt)
+        }
+      } catch (err) {
+        end(err)
+      }
+    })
+
+    const responses = {
+      eth_getBlockByNumber: () => ({ number: 0 }),
+      eth_getTransactionByHash (_hash) {
+        _hash.should.equal(hash)
+        return transaction
+      },
+      eth_getTransactionReceipt (_hash) {
+        _hash.should.equal(hash)
+        return hashReceived ? receipt : null
+      }
+    }
+
+    const plugins = { eth: { web3Provider: new MockProvider(responses) } }
+
+    const { api } = explorer.start({ config, eventBus, plugins })
+
+    eventBus.emit('open-wallets', { activeWallet: walletId })
+
+    api.logTransaction(promiEvent, address)
+      .then(function ({ receipt: _receipt }) {
+        _receipt.should.deep.equal(receipt)
+        promiseResolved = true
+      })
+      .catch(end)
+
+    promiEvent.emit('transactionHash', hash)
   })
 })
