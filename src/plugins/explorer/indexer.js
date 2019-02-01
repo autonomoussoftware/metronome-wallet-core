@@ -84,7 +84,9 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
   }
 
   function disconnect () {
-    socket.close()
+    if (socket) {
+      socket.close()
+    }
   }
 
   return {
