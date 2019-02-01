@@ -1,8 +1,10 @@
 {
   "chainId": 3,
   "debug": false,
+  "displayName": "Local",
   "explorerDebounce": 2000,
   "gasOverestimation": 1.1,
+  "indexerUrl": "http://localhost:3005",
   "ratesSource": "Bittrex",
   "ratesUpdateMs": 30000,
   "symbol": "ETH",
