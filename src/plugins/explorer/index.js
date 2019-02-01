@@ -62,7 +62,6 @@ function createPlugin () {
         })
         promiEvent.once('receipt', function (receipt) {
           queue.addTransaction(from)(receipt.transactionHash)
-          eventBus.emit('coin-tx')
           deferred.resolve({ receipt })
         })
         promiEvent.once('error', function (err) {
@@ -78,7 +77,6 @@ function createPlugin () {
       const promise = promiEvent
       return promise.then(function (receipt) {
         queue.addTransaction(from)(receipt.transactionHash)
-        eventBus.emit('coin-tx')
         return { receipt }
       })
     }
