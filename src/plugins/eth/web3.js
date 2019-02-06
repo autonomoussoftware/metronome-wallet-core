@@ -13,21 +13,15 @@ function createWeb3 (config, eventBus) {
 
   web3.currentProvider.on('connect', function () {
     debug('Web3 provider connected')
-    eventBus.emit('web3-connection-status-changed', {
-      connected: true
-    })
+    eventBus.emit('web3-connection-status-changed', { connected: true })
   })
   web3.currentProvider.on('error', function (event) {
     debug('Web3 provider connection error', event.type || event)
-    eventBus.emit('web3-connection-status-changed', {
-      connected: false
-    })
+    eventBus.emit('web3-connection-status-changed', { connected: false })
   })
   web3.currentProvider.on('end', function (code) {
     debug('Web3 provider connection ended', code)
-    eventBus.emit('web3-connection-status-changed', {
-      connected: false
-    })
+    eventBus.emit('web3-connection-status-changed', { connected: false })
   })
 
   return web3
