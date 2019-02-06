@@ -17,8 +17,8 @@ function createWeb3 (config, eventBus) {
       connected: true
     })
   })
-  web3.currentProvider.on('error', function (err) {
-    debug('Web3 provider connection error', err)
+  web3.currentProvider.on('error', function (event) {
+    debug('Web3 provider connection error', event.type || event)
     eventBus.emit('web3-connection-status-changed', {
       connected: false
     })

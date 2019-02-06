@@ -9,7 +9,7 @@ function getTransactionStatus (transaction, receipt) {
     receipt.status === null && // no Byzantinum fork
       transaction.input !== '0x' && // is contract call
       transaction.gas === receipt.gasUsed && // used all gas
-      !receipt.logs.length // and no any logs
+      !receipt.logs.length // and no logs
   )
 
   return !failed

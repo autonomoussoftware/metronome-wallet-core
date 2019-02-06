@@ -4,8 +4,8 @@ const pDefer = require('p-defer')
 
 const createLogTransaction = queue =>
   function (promiEvent, from, meta) {
-  // PromiEvent objects shall be wrapped to avoid the promise chain to
-  // cast it to a plain promise
+    // PromiEvent objects shall be wrapped to avoid the promise chain to
+    // cast it to a plain promise
     if (promiEvent.once) {
       const deferred = pDefer()
 

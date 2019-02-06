@@ -14,6 +14,9 @@ function createPlugin () {
     web3 = createWeb3(config, eventBus)
 
     checkChain(web3, config.chainId)
+      .then(function () {
+        debug('Chain ID is correct')
+      })
       .catch(function (err) {
         eventBus.emit('wallet-error', {
           inner: err,
