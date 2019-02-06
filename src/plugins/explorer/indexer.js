@@ -8,7 +8,7 @@ const pRetry = require('p-retry')
 
 const createAxiosCookiejar = require('./axios-cookiejar')
 
-function createIndexer ({ debug: enableDebug, indexerUrl }) {
+function createIndexer ({ debug: enableDebug, indexerUrl }, eventBus) {
   debug.enabled = enableDebug
 
   let socket
@@ -21,7 +21,11 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
       .then(res => res.data)
 
   const getCookiePromise = pRetry(
-    () => axios.get('/blocks/best'),
+    () =>
+      axios.get('/blocks/best')
+        .then(function () {
+          debug('Got indexer cookie')
+        }),
     {
       forever: true,
       maxTimeout: 5000,
@@ -45,6 +49,10 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
         socket = getSocket()
 
         socket.on('connect', function () {
+          debug('Indexer connected')
+          eventBus.emit('indexer-connection-status-changed', {
+            connected: true
+          })
           socket.emit(
             'subscribe',
             { type: 'txs', addresses: [address] },
@@ -63,6 +71,10 @@ function createIndexer ({ debug: enableDebug, indexerUrl }) {
         })
 
         socket.on('disconnect', function (reason) {
+          debug('Indexer disconnected')
+          eventBus.emit('indexer-connection-status-changed', {
+            connected: false
+          })
           stream.emit('error', new Error(`Indexer disconnected with ${reason}`))
         })
 

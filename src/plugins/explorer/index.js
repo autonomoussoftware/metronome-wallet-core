@@ -25,7 +25,7 @@ function createPlugin () {
     const eventsRegistry = createEventsRegistry()
     const queue = createQueue(config, eventBus, web3)
 
-    indexer = createIndexer(config)
+    indexer = createIndexer(config, eventBus)
 
     syncer = createTransactionSyncer(
       config,
@@ -62,6 +62,7 @@ function createPlugin () {
       },
       events: [
         'coin-block',
+        'indexer-connection-status-changed',
         'wallet-error'
       ],
       name: 'explorer'
