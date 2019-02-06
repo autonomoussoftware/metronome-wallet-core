@@ -16,11 +16,11 @@ function createWeb3 (config, eventBus) {
     eventBus.emit('web3-connection-status-changed', { connected: true })
   })
   web3.currentProvider.on('error', function (event) {
-    debug('Web3 provider connection error', event.type || event)
+    debug('Web3 provider connection error', event.type || event.message)
     eventBus.emit('web3-connection-status-changed', { connected: false })
   })
-  web3.currentProvider.on('end', function (code) {
-    debug('Web3 provider connection ended', code)
+  web3.currentProvider.on('end', function (event) {
+    debug('Web3 provider connection ended', event.reason)
     eventBus.emit('web3-connection-status-changed', { connected: false })
   })
 
