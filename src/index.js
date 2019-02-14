@@ -6,18 +6,19 @@ const EventEmitter = require('events')
 
 const defaultConfig = require('./defaultConfig')
 
-const plugins = [
+const pluginCreators = [
   require('./plugins/rates'),
   require('./plugins/eth'),
   require('./plugins/explorer'),
   require('./plugins/wallet'),
   require('./plugins/tokens'),
   require('./plugins/metronome')
-].map(create => create())
+]
 
 function createCore () {
   let eventBus
   let initialized = false
+  let plugins
 
   function start (givenConfig) {
     if (initialized) {
@@ -41,6 +42,8 @@ function createCore () {
 
     const coreEvents = []
     const pluginsApi = {}
+
+    plugins = pluginCreators.map(create => create())
 
     plugins.forEach(function (plugin) {
       const params = { config, eventBus, plugins: pluginsApi }
@@ -73,9 +76,11 @@ function createCore () {
       throw new Error('Wallet Core not initialized')
     }
 
-    [].concat(plugins).reverse().forEach(function (plugin) {
+    plugins.reverse().forEach(function (plugin) {
       plugin.stop()
     })
+
+    plugins = null
 
     eventBus.removeAllListeners()
     eventBus = null
