@@ -1,6 +1,6 @@
 'use strict'
 
-const { isMatch } = require('lodash')
+const { isMatch, isNumber } = require('lodash')
 const { utils: { toChecksumAddress } } = require('web3')
 
 const createTryParseEventLog = require('./parse-log')
@@ -10,7 +10,7 @@ const refreshTransaction = (web3, eventsRegistry, queue) =>
     web3.eth.getTransactionReceipt(hash)
       .then(function (receipt) {
         // Skip unconfirmed transactions
-        if (!receipt || !receipt.blockNumber) {
+        if (!receipt || !isNumber(receipt.blockNumber)) {
           return Promise.resolve()
         }
 

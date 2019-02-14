@@ -63,6 +63,7 @@ describe('Explorer plugin', function () {
         value: 0
       }
       const receipt = {
+        blockNumber: 0,
         from: address,
         logs: [],
         to: randomAddress()
@@ -159,6 +160,7 @@ describe('Explorer plugin', function () {
         ]
       }]
       const receipt = {
+        blockNumber: 0,
         from: fromAddress,
         logs,
         to: contractAddress
@@ -307,6 +309,7 @@ describe('Explorer plugin', function () {
         ]
       }]
       const receipt = {
+        blockNumber: 0,
         from: address,
         logs,
         to: contractAddress
