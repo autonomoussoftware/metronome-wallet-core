@@ -10,7 +10,7 @@ const refreshTransaction = (web3, eventsRegistry, queue) =>
     web3.eth.getTransactionReceipt(hash)
       .then(function (receipt) {
         // Skip unconfirmed transactions
-        if (!receipt) {
+        if (!receipt || !receipt.blockNumber) {
           return Promise.resolve()
         }
 
