@@ -25,7 +25,7 @@
     "precommit": "npm run lint",
     "prepare": "patch-package",
     "prepublishOnly": "npm run precommit && npm run prepush && tag-matches",
-    "prepush": "npm run check",
+    "prepush": "npm run check && npm test",
     "test": "mocha"
   },
   "dependencies": {
