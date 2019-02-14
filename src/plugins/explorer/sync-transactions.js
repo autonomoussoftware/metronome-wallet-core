@@ -22,6 +22,7 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
 
   function subscribeCoinTransactions (fromBlock, address) {
     let shallResync = false
+    let resyncing = false
     let bestSyncBlock = fromBlock
 
     const { symbol, displayName } = config
@@ -45,8 +46,10 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
     // Check if shall resync when a new block is seen, as that is the
     // indication of proper reconnection to the Ethereum node.
     eventBus.on('coin-block', function ({ number }) {
-      if (shallResync) {
+      if (shallResync && !resyncing) {
+        resyncing = true
         shallResync = false
+        // eslint-disable-next-line promise/catch-or-return
         getTransactions(bestSyncBlock, number, address)
           .then(function (transactions) {
             const { length } = transactions
@@ -62,6 +65,12 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
               meta: { plugin: 'explorer' }
             })
           })
+          .then(function () {
+            resyncing = false
+          })
+      } else if (!resyncing) {
+        bestSyncBlock = number
+        bestBlock = number
       }
     })
   }
@@ -73,6 +82,7 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
       .then(function (transactions) {
         debug(`${transactions.length} past ${symbol} transactions retrieved`)
         return Promise.all(transactions.map(queue.addTransaction(address)))
+          .then(() => toBlock)
       })
   }
 
@@ -113,6 +123,7 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
   function subscribeEvents (fromBlock, address) {
     eventsRegistry.getAll().forEach(function (registration) {
       let shallResync = false
+      let resyncing = false
       let bestSyncBlock = fromBlock
 
       const {
@@ -148,8 +159,10 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
 
       // Resync on new block or save it as best sync block
       eventBus.on('coin-block', function ({ number }) {
-        if (shallResync) {
+        if (shallResync && !resyncing) {
+          resyncing = true
           shallResync = false
+          // eslint-disable-next-line promise/catch-or-return
           contract.getPastEvents(
             eventName,
             { fromBlock: bestSyncBlock, filter }
@@ -166,8 +179,12 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
                 meta: { plugin: 'explorer' }
               })
             })
-        } else {
+            .then(function () {
+              resyncing = false
+            })
+        } else if (!resyncing) {
           bestSyncBlock = number
+          bestBlock = number
         }
       })
     })
@@ -180,12 +197,14 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
         subscribeCoinTransactions(bestBlock, address)
         subscribeEvents(bestBlock, address)
         return Promise.all([
-          bestBlock,
           getPastCoinTransactions(fromBlock, bestBlock, address),
           getPastEvents(fromBlock, bestBlock, address)
         ])
       })
-      .then(([syncedBlock]) => syncedBlock)
+      .then(function ([syncedBlock]) {
+        bestBlock = syncedBlock
+        return syncedBlock
+      })
 
   const refreshAllTransactions = address =>
     gotBestBlockPromise
@@ -194,6 +213,10 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
           getPastCoinTransactions(0, bestBlock, address),
           getPastEvents(0, bestBlock, address)
         ])
+          .then(function ([syncedBlock]) {
+            bestBlock = syncedBlock
+            return syncedBlock
+          })
       )
 
   function stop () {
