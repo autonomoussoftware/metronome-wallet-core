@@ -38,10 +38,8 @@ function createPlugin () {
   }
 
   function stop () {
-    if (!web3) {
-      destroyWeb3(web3)
-      web3 = null
-    }
+    destroyWeb3(web3)
+    web3 = null
   }
 
   return {
