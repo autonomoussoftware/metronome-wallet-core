@@ -38,9 +38,9 @@ function createPlugin () {
 
     debug('Initiating blocks stream')
     blocksStream = createStream(web3)
-    blocksStream.on('data', function (header) {
-      debug('New block', header.number, header.hash)
-      eventBus.emit('coin-block', header)
+    blocksStream.on('data', function ({ hash, number, timestamp }) {
+      debug('New block', hash, number)
+      eventBus.emit('coin-block', { hash, number, timestamp })
     })
     blocksStream.on('error', function (err) {
       debug('Could not get lastest block')
