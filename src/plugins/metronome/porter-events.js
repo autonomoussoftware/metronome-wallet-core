@@ -13,6 +13,7 @@ const exportMetaParser = ({ returnValues }) => ({
       dailyAuctionStartTime: returnValues.dailyAuctionStartTime,
       dailyMintable: returnValues.dailyMintable,
       destinationChain: hexToUtf8(returnValues.destinationChain),
+      extraData: returnValues.extraData,
       fee: returnValues.fee,
       genesisTime: returnValues.genesisTime,
       previousBurnHash: returnValues.prevBurnHash,
