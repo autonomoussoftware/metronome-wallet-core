@@ -1,9 +1,13 @@
 'use strict'
 
+const { isNumber } = require('lodash')
+
 function getTransactionStatus (transaction, receipt) {
   if (!receipt) {
     throw new Error('No transaction receipt')
   }
+
+  const isMined = isNumber(receipt.blockNumber)
 
   const failed = receipt.status === false || (
     receipt.status === null && // no Byzantinum fork
@@ -12,7 +16,7 @@ function getTransactionStatus (transaction, receipt) {
       !receipt.logs.length // and no logs
   )
 
-  return !failed
+  return !isMined || (isMined && !failed)
 }
 
 module.exports = getTransactionStatus
