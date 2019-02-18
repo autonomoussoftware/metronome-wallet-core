@@ -39,45 +39,47 @@ function estimateExportMetGas (web3, chain) {
 }
 
 function estimateImportMetGas (web3, chain) {
-  const { METToken } = new MetronomeContracts(web3, chain)
+  const { Auctions, METToken } = new MetronomeContracts(web3, chain)
   return function (params) {
     const {
       blockTimestamp,
       burnSequence,
       currentBurnHash,
       currentTick,
-      dailyAuctionStartTime,
       dailyMintable,
       destinationChain,
       destinationMetAddress,
       extraData,
       fee,
       from,
-      genesisTime,
       originChain,
       previousBurnHash,
       supply,
       value
     } = params
-    return METToken.methods.importMET(
-      toHex(originChain),
-      toHex(destinationChain),
-      [destinationMetAddress, from],
-      extraData,
-      [previousBurnHash, currentBurnHash],
-      supply,
-      [
-        blockTimestamp,
-        value,
-        fee,
-        currentTick,
-        genesisTime,
-        dailyMintable,
-        burnSequence,
-        dailyAuctionStartTime
-      ],
-      getMerkleRoot([previousBurnHash, currentBurnHash])
-    ).estimateGas({ from })
+    return Promise.all([
+      Auctions.methods.genesisTime().call(),
+      Auctions.methods.dailyAuctionStartTime().call()
+    ]).then(([genesisTime, dailyAuctionStartTime]) =>
+      METToken.methods.importMET(
+        toHex(originChain),
+        toHex(destinationChain),
+        [destinationMetAddress, from],
+        extraData,
+        [previousBurnHash, currentBurnHash],
+        supply,
+        [
+          blockTimestamp,
+          value,
+          fee,
+          currentTick,
+          genesisTime,
+          dailyMintable,
+          burnSequence,
+          dailyAuctionStartTime
+        ],
+        getMerkleRoot([previousBurnHash, currentBurnHash])
+      ).estimateGas({ from }))
   }
 }
 
