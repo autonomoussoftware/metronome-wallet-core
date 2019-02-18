@@ -206,11 +206,11 @@ function importMet (web3, chain, logTransaction, metaParsers) {
           from,
           metaParsers.importRequest({
             returnValues: {
-              amountImported: value,
+              amountToImport: value,
               currentBurnHash,
               fee,
               originChain: toHex(originChain),
-              to: from
+              destinationRecipientAddr: from
             }
           })
         )
