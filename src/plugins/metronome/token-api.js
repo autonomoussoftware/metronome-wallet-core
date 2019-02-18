@@ -1,19 +1,9 @@
 'use strict'
 
 const { utils: { toHex } } = require('web3')
-const crypto = require('crypto')
-const MerkleTreeJs = require('merkletreejs')
 const MetronomeContracts = require('metronome-contracts')
 
 const { getExportMetFee } = require('./porter-api')
-
-function getMerkleRoot (hashes) {
-  const leaves = hashes.map(x => Buffer.from(x.slice(2), 'hex'))
-  const tree = new MerkleTreeJs(leaves, data =>
-    crypto.createHash('sha256').update(data).digest()
-  )
-  return `0x${tree.getRoot().toString('hex')}`
-}
 
 function estimateExportMetGas (web3, chain) {
   const { METToken } = new MetronomeContracts(web3, chain)
@@ -55,6 +45,7 @@ function estimateImportMetGas (web3, chain) {
       originChain,
       previousBurnHash,
       supply,
+      root,
       value
     } = params
     return Promise.all([
@@ -78,7 +69,7 @@ function estimateImportMetGas (web3, chain) {
           burnSequence,
           dailyAuctionStartTime
         ],
-        getMerkleRoot([previousBurnHash, currentBurnHash])
+        root
       ).estimateGas({ from }))
   }
 }
@@ -173,6 +164,7 @@ function importMet (web3, chain, logTransaction, metaParsers) {
       originChain,
       previousBurnHash,
       supply,
+      root,
       value
     } = params
     addAccount(web3, privateKey)
@@ -201,7 +193,7 @@ function importMet (web3, chain, logTransaction, metaParsers) {
               burnSequence,
               dailyAuctionStartTime
             ],
-            getMerkleRoot([previousBurnHash, currentBurnHash])
+            root
           ).send({ from, gasPrice, gas, nonce }),
           from,
           metaParsers.importRequest({

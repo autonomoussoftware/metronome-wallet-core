@@ -17,7 +17,8 @@ const {
   getMetToMetEstimate
 } = require('./converter-api')
 const {
-  getExportMetFee
+  getExportMetFee,
+  getMerkleRoot
 } = require('./porter-api')
 const {
   estimateExportMetGas,
@@ -128,6 +129,7 @@ function createPlugin () {
           metaParsers
         ),
         getExportMetFee: getExportMetFee(web3, chainId),
+        getMerkleRoot: getMerkleRoot(web3, chainId),
         estimateExportMetGas: over(estimateExportMetGas(web3, chainId)),
         estimateImportMetGas: over(estimateImportMetGas(web3, chainId)),
         exportMet: exportMet(
