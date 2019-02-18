@@ -26,6 +26,7 @@ const {
   importMet,
   sendMet
 } = require('./token-api')
+const getAttestationThreshold = require('./validator-status')
 const getAuctionStatus = require('./auction-status')
 const getConverterStatus = require('./converter-status')
 const auctionEvents = require('./auction-events')
@@ -68,6 +69,10 @@ function createPlugin () {
         getConverterStatus(web3, chainId)
           .then(function (status) {
             eventBus.emit('converter-status-updated', status)
+          }),
+        getAttestationThreshold(web3, chainId)
+          .then(function (status) {
+            eventBus.emit('attestation-threshold-updated', status)
           })
       ])
         .catch(function (err) {
@@ -152,6 +157,7 @@ function createPlugin () {
       events: [
         'auction-status-updated',
         'converter-status-updated',
+        'attestation-threshold-updated',
         'wallet-error'
       ],
       name: 'metronome'
