@@ -17,11 +17,11 @@ function getExportMetFee (web3, chain) {
       )
 }
 
+const sha256 = data => crypto.createHash('sha256').update(data).digest()
+
 function calcMerkleRoot (hashes) {
   const leaves = hashes.map(x => Buffer.from(x.slice(2), 'hex'))
-  const tree = new MerkleTreeJs(leaves, data =>
-    crypto.createHash('sha256').update(data).digest()
-  )
+  const tree = new MerkleTreeJs(leaves, sha256)
   return `0x${tree.getRoot().toString('hex')}`
 }
 
@@ -29,7 +29,7 @@ function getMerkleRoot (web3, chain) {
   const { TokenPorter } = new MetronomeContracts(web3, chain)
   return burnSeq =>
     Promise.all(new Array(16).fill()
-      .map((_, i) => burnSeq - i).reverse().filter(i => i >= 0)
+      .map((_, i) => burnSeq - i).filter(i => i >= 0).reverse()
       .map(seq => TokenPorter.methods.exportedBurns(seq).call())
     )
       .then(calcMerkleRoot)
