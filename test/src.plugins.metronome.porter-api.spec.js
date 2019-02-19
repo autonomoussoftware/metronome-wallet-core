@@ -37,14 +37,14 @@ const getMerkleRoot = porterApi.getMerkleRoot({}, 'chain')
 
 describe('TokenPorter API', function () {
   it('should return the root of the last 16 burn hashes', () =>
-    getMerkleRoot(24)
+    getMerkleRoot('24')
       .then(function (root) {
         root.should.equal('0x090a0b0c0d0e0f101112131415161718')
       })
   )
 
   it('should return the root of the last 10 burn hashes', () =>
-    getMerkleRoot(8)
+    getMerkleRoot('8')
       .then(function (root) {
         root.should.equal('0x000102030405060708')
       })

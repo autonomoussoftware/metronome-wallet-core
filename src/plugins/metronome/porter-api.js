@@ -29,8 +29,10 @@ function getMerkleRoot (web3, chain) {
   const { TokenPorter } = new MetronomeContracts(web3, chain)
   return burnSeq =>
     Promise.all(new Array(16).fill()
-      .map((_, i) => burnSeq - i).filter(i => i >= 0).reverse()
-      .map(seq => TokenPorter.methods.exportedBurns(seq).call())
+      .map((_, i) => toBN(burnSeq).subn(i))
+      .filter(seq => seq.gten(0))
+      .reverse()
+      .map(seq => TokenPorter.methods.exportedBurns(seq.toString()).call())
     )
       .then(calcMerkleRoot)
 }
