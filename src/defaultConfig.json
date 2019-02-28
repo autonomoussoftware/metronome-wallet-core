@@ -8,6 +8,7 @@
   "ratesSource": "Bittrex",
   "ratesUpdateMs": 30000,
   "symbol": "ETH",
+  "useNativeCookieJar": false,
   "web3Timeout": 60000,
   "wsApiUrl": "ws://localhost:8546"
 }

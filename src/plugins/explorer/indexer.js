@@ -6,39 +6,50 @@ const EventEmitter = require('events')
 const io = require('socket.io-client')
 const pRetry = require('p-retry')
 
-const createAxiosCookiejar = require('./axios-cookiejar')
-
-function createIndexer ({ debug: enableDebug, indexerUrl }, eventBus) {
+function createIndexer (
+  { debug: enableDebug, indexerUrl, useNativeCookieJar },
+  eventBus
+) {
   debug.enabled = enableDebug
 
   let socket
-
-  const jar = new CookieJar()
-  const axios = createAxiosCookiejar({ baseURL: indexerUrl }, jar)
+  let jar
+  let axios
+  if (useNativeCookieJar) {
+    axios = require('axios')
+  } else {
+    const createAxiosCookiejar = require('./axios-cookiejar')
+    jar = new CookieJar()
+    axios = createAxiosCookiejar({ baseURL: indexerUrl }, jar)
+  }
 
   const getTransactions = (from, to, address) =>
-    axios(`/addresses/${address}/transactions`, { params: { from, to } })
-      .then(res => res.data)
+    axios(`/addresses/${address}/transactions`, { params: { from, to } }).then(
+      res => res.data
+    )
 
-  const getCookiePromise = pRetry(
-    () =>
-      axios.get('/blocks/best')
-        .then(function () {
+  const getCookiePromise = useNativeCookieJar
+    ? Promise.resolve()
+    : pRetry(
+      () =>
+        axios.get('/blocks/best').then(function () {
           debug('Got indexer cookie')
         }),
-    {
-      forever: true,
-      maxTimeout: 5000,
-      onFailedAttempt (err) {
-        debug('Failed to get indexer cookie', err.message)
+      {
+        forever: true,
+        maxTimeout: 5000,
+        onFailedAttempt (err) {
+          debug('Failed to get indexer cookie', err.message)
+        }
       }
-    }
-  )
+    )
 
   const getSocket = () =>
     io(`${indexerUrl}/v1`, {
       autoConnect: false,
-      extraHeaders: { Cookie: jar.getCookiesSync(indexerUrl).join(';') }
+      extraHeaders: useNativeCookieJar
+        ? {}
+        : { Cookie: jar.getCookiesSync(indexerUrl).join(';') }
     })
 
   function getTransactionStream (address) {
