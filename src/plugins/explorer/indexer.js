@@ -15,6 +15,7 @@ function createIndexer (
   let socket
   let jar
   let axios
+
   if (useNativeCookieJar) {
     axios = require('axios')
   } else {
@@ -24,9 +25,10 @@ function createIndexer (
   }
 
   const getTransactions = (from, to, address) =>
-    axios(`/addresses/${address}/transactions`, { params: { from, to } }).then(
-      res => res.data
-    )
+    axios(`/addresses/${address}/transactions`, {
+      baseURL: indexerUrl,
+      params: { from, to }
+    }).then(res => res.data)
 
   const getCookiePromise = useNativeCookieJar
     ? Promise.resolve()
