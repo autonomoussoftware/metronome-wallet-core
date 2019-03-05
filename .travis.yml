@@ -13,6 +13,7 @@ cache:
 jobs:
   include:
     - stage: npm release
+      script: echo skipping build script
       before_deploy: echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc  
       deploy:
         on: 
