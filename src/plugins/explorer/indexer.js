@@ -17,7 +17,7 @@ function createIndexer (
   let axios
 
   if (useNativeCookieJar) {
-    axios = require('axios')
+    axios = require('axios').create({ baseURL: indexerUrl })
   } else {
     const createAxiosCookiejar = require('./axios-cookiejar')
     jar = new CookieJar()
@@ -25,10 +25,8 @@ function createIndexer (
   }
 
   const getTransactions = (from, to, address) =>
-    axios(`/addresses/${address}/transactions`, {
-      baseURL: indexerUrl,
-      params: { from, to }
-    }).then(res => res.data)
+    axios(`/addresses/${address}/transactions`, { params: { from, to } })
+      .then(res => res.data)
 
   const getCookiePromise = useNativeCookieJar
     ? Promise.resolve()
@@ -49,9 +47,9 @@ function createIndexer (
   const getSocket = () =>
     io(`${indexerUrl}/v1`, {
       autoConnect: false,
-      extraHeaders: useNativeCookieJar
-        ? {}
-        : { Cookie: jar.getCookiesSync(indexerUrl).join(';') }
+      extraHeaders: jar
+        ? { Cookie: jar.getCookiesSync(indexerUrl).join(';') }
+        : {}
     })
 
   function getTransactionStream (address) {
