@@ -1,27 +1,33 @@
 'use strict'
 
 const { CookieJar } = require('tough-cookie')
+const { create: createAxios } = require('axios')
+const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
 const debug = require('debug')('met-wallet:core:explorer:indexer')
 const EventEmitter = require('events')
 const io = require('socket.io-client')
 const pRetry = require('p-retry')
 
-function createIndexer (
-  { debug: enableDebug, indexerUrl, useNativeCookieJar },
-  eventBus
-) {
+function createIndexer (config, eventBus) {
+  const { debug: enableDebug, indexerUrl, useNativeCookieJar } = config
+
   debug.enabled = enableDebug
 
-  let socket
-  let jar
   let axios
+  let jar
+  let socket
 
   if (useNativeCookieJar) {
-    axios = require('axios').create({ baseURL: indexerUrl })
+    axios = createAxios({
+      baseURL: indexerUrl
+    })
   } else {
-    const createAxiosCookiejar = require('./axios-cookiejar')
     jar = new CookieJar()
-    axios = createAxiosCookiejar({ baseURL: indexerUrl }, jar)
+    axios = axiosCookieJarSupport(createAxios(({
+      baseURL: indexerUrl,
+      jar,
+      withCredentials: true
+    })))
   }
 
   const getTransactions = (from, to, address) =>
