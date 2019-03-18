@@ -38,12 +38,12 @@
     "lodash": "^4.17.10",
     "merkletreejs": "^0.0.22",
     "metronome-contracts": "^2.0.0",
-    "p-defer": "^1.0.0",
-    "p-retry": "^3.0.1",
+    "p-defer": "^2.0.0",
+    "p-retry": "^4.0.0",
     "promise-all-props": "^1.0.1",
-    "socket.io-client": "2.1.1",
-    "tough-cookie": "^2.5.0",
-    "web3": "1.0.0-beta.37",
+    "socket.io-client": "2.2.0",
+    "tough-cookie": "^3.0.1",
+    "web3": "1.0.0-beta.48",
     "websocket-reconnector": "^1.1.1"
   },
   "devDependencies": {
@@ -62,10 +62,10 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "husky": "^1.1.1",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.2",
     "npm-check": "^5.8.0",
     "nyc": "^13.3.0",
-    "patch-package": "^5.1.1",
+    "patch-package": "^6.0.5",
     "proxyquire": "^2.1.0",
     "randomstring": "^1.1.5"
   }
