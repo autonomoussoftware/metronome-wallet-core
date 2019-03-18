@@ -1,5 +1,7 @@
 # metronome-wallet-core
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/autonomoussoftware/metronome-wallet-core.svg)](https://greenkeeper.io/)
+
 Core logic to develop an Ethereum Metronome wallet.
 
 The core logic has a modular design where each module or plugin can emit events and expose methods to other plugins or the code client.
