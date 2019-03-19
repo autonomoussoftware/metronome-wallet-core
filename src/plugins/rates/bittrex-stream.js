@@ -13,7 +13,7 @@ function createStream (ticker, minInterval) {
   const emitTickerValue = () =>
     client.ticker(`USD-${ticker}`)
       .then(function (values) {
-        if (typeof values.Last !== 'number') {
+        if (typeof values !== 'object' || typeof values.Last !== 'number') {
           return
         }
 

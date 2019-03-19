@@ -3,6 +3,7 @@
 const { CookieJar } = require('tough-cookie')
 const { create: createAxios } = require('axios')
 const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
+const { isArrayLike } = require('lodash')
 const debug = require('debug')('met-wallet:core:explorer:indexer')
 const EventEmitter = require('events')
 const io = require('socket.io-client')
@@ -30,17 +31,32 @@ function createIndexer (config, eventBus) {
     })))
   }
 
+  const getBestBlock = () =>
+    axios('/blocks/best')
+      .then(res => res.data)
+      .then(best =>
+        best && best.number && best.hash
+          ? best
+          : new Error('Indexer\' response is invalid for best block')
+      )
+
   const getTransactions = (from, to, address) =>
     axios(`/addresses/${address}/transactions`, { params: { from, to } })
       .then(res => res.data)
+      .then(transactions =>
+        isArrayLike(transactions)
+          ? transactions
+          : new Error('Indexer response is invalid for address\' transactions')
+      )
 
   const getCookiePromise = useNativeCookieJar
     ? Promise.resolve()
     : pRetry(
       () =>
-        axios.get('/blocks/best').then(function () {
-          debug('Got indexer cookie')
-        }),
+        getBestBlock()
+          .then(function () {
+            debug('Got indexer cookie')
+          }),
       {
         forever: true,
         maxTimeout: 5000,
@@ -81,8 +97,20 @@ function createIndexer (config, eventBus) {
           )
         })
 
-        socket.on('tx', function ({ type, txid }) {
+        socket.on('tx', function (data) {
+          if (!data) {
+            stream.emit('error', new Error('Indexer sent no tx event data'))
+            return
+          }
+
+          const { type, txid } = data
+
           if (type === 'eth') {
+            if (typeof txid !== 'string' || txid.length !== 66) {
+              stream.emit('error', new Error('Indexer sent bad tx event data'))
+              return
+            }
+
             stream.emit('data', txid)
           }
         })
@@ -120,6 +148,7 @@ function createIndexer (config, eventBus) {
 
   return {
     disconnect,
+    getBestBlock,
     getTransactions,
     getTransactionStream
   }
