@@ -42,7 +42,9 @@ function createQueue (config, eventBus, web3) {
       [walletId]: {
         addresses: {
           [address]: {
-            transactions: transactions.map(fillInStatus)
+            transactions: transactions
+              .filter(data => !!data.transaction)
+              .map(fillInStatus)
           }
         }
       }
