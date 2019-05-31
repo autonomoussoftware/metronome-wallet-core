@@ -1,8 +1,8 @@
 'use strict'
 
+const { MerkleTree } = require('merkletreejs')
 const { utils: { BN, toBN } } = require('web3')
 const crypto = require('crypto')
-const MerkleTreeJs = require('merkletreejs')
 const MetronomeContracts = require('metronome-contracts')
 
 function getExportMetFee (web3, chain) {
@@ -21,7 +21,7 @@ const sha256 = data => crypto.createHash('sha256').update(data).digest()
 
 function calcMerkleRoot (hashes) {
   const leaves = hashes.map(x => Buffer.from(x.slice(2), 'hex'))
-  const tree = new MerkleTreeJs(leaves, sha256)
+  const tree = new MerkleTree(leaves, sha256)
   return `0x${tree.getRoot().toString('hex')}`
 }
 

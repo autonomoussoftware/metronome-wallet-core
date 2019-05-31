@@ -1,9 +1,12 @@
 'use strict'
 
-const proxyquire = require('proxyquire').noPreserveCache().noCallThru()
+const proxyquire = require('proxyquire')
+  .noPreserveCache()
+  .noCallThru()
 require('chai').should()
 
-const burnHashes = new Array(32).fill()
+const burnHashes = new Array(32)
+  .fill(null)
   .map((_, i) => i)
   .reduce(
     (all, i) =>
@@ -21,15 +24,7 @@ const MockMetronomeContracts = function () {
   }
 }
 
-const MockMerkleJs = function (leaves) {
-  this.leaves = leaves
-}
-MockMerkleJs.prototype.getRoot = function () {
-  return Buffer.concat(this.leaves)
-}
-
 const porterApi = proxyquire('../src/plugins/metronome/porter-api', {
-  'merkletreejs': MockMerkleJs,
   'metronome-contracts': MockMetronomeContracts
 })
 
@@ -37,16 +32,16 @@ const getMerkleRoot = porterApi.getMerkleRoot({}, 'chain')
 
 describe('TokenPorter API', function () {
   it('should return the root of the last 16 burn hashes', () =>
-    getMerkleRoot('24')
-      .then(function (root) {
-        root.should.equal('0x090a0b0c0d0e0f101112131415161718')
-      })
-  )
+    getMerkleRoot('24').then(function (root) {
+      root.should.equal(
+        '0x4742e6b7570e0e65d74d9de33bff85dc6c9c61614e2d099cf8596df4d550a45a'
+      )
+    }))
 
   it('should return the root of the last 10 burn hashes', () =>
-    getMerkleRoot('8')
-      .then(function (root) {
-        root.should.equal('0x000102030405060708')
-      })
-  )
+    getMerkleRoot('8').then(function (root) {
+      root.should.equal(
+        '0xa57cc928900b85a888948eb49b669d4a3e8d2b4f7ad47f96c6a941e3b7886c7e'
+      )
+    }))
 })
