@@ -4,13 +4,21 @@ const { CookieJar } = require('tough-cookie')
 const { create: createAxios } = require('axios')
 const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
 const { isArrayLike } = require('lodash')
+const blockscout = require('./blockscout')
 const debug = require('debug')('met-wallet:core:explorer:indexer')
 const EventEmitter = require('events')
 const io = require('socket.io-client')
 const pRetry = require('p-retry')
 
+/**
+ * Create an object to interact with the Metronome indexer.
+ *
+ * @param {object} config The configuration object.
+ * @param {object} eventBus The corss-plugin event bus.
+ * @returns {object} The exposed indexer API.
+ */
 function createIndexer (config, eventBus) {
-  const { debug: enableDebug, indexerUrl, useNativeCookieJar } = config
+  const { chainId, debug: enableDebug, indexerUrl, useNativeCookieJar } = config
 
   debug.enabled = enableDebug
 
@@ -41,13 +49,15 @@ function createIndexer (config, eventBus) {
       )
 
   const getTransactions = (from, to, address) =>
-    axios(`/addresses/${address}/transactions`, { params: { from, to } })
-      .then(res => res.data)
-      .then(transactions =>
-        isArrayLike(transactions)
-          ? transactions
-          : new Error('Indexer response is invalid for address\' transactions')
-      )
+    chainId === 61 // Ethereum Classic Mainnet chain ID
+      ? blockscout.getTransactions(address, from, to)
+      : axios(`/addresses/${address}/transactions`, { params: { from, to } })
+        .then(res => res.data)
+        .then(transactions =>
+          isArrayLike(transactions)
+            ? transactions
+            : new Error(`Indexer response is invalid for ${address}`)
+        )
 
   const getCookiePromise = useNativeCookieJar
     ? Promise.resolve()
@@ -74,6 +84,17 @@ function createIndexer (config, eventBus) {
         : {}
     })
 
+  /**
+   * Create a stream that will emit an event each time a transaction for the
+   * specified address is indexed.
+   *
+   * The stream will emit `data` for each transaction. If the connection is lost
+   * or an error occurs, an `error` event will be emitted. In addition, when the
+   * connection is restablished, a `resync` will be emitted.
+   *
+   * @param {string} address The address.
+   * @returns {object} The event emitter.
+   */
   function getTransactionStream (address) {
     const stream = new EventEmitter()
 
@@ -140,6 +161,9 @@ function createIndexer (config, eventBus) {
     return stream
   }
 
+  /**
+   * Disconnects from the indexer.
+   */
   function disconnect () {
     if (socket) {
       socket.close()
