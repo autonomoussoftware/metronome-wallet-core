@@ -9,9 +9,7 @@ chai.use(chaiAsPromised).should()
 
 const mockWeb3 = ({ id }) => ({
   eth: {
-    net: {
-      getId: () => Promise.resolve(id)
-    }
+    getChainId: () => Promise.resolve(id)
   }
 })
 
