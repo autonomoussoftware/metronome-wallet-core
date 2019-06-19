@@ -1,11 +1,9 @@
 language: node_js
 node_js:
-  - "8"
   - "10"
+  - "8"
 
-cache:
-  directories:
-    - "node_modules"
+cache: npm
 
 if: tag IS blank
 
@@ -22,8 +20,10 @@ jobs:
         - echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc
         - npm i --global otp-cli
         - export NPM_OTP=$(otp-cli totp generate -k "$NPM_OTP_SECRET")
+
       deploy:
         provider: script
         script: if [ -n "$VERSION_TAG" ]; then npm publish --access public --otp "$NPM_OTP"; else echo commit not tagged; fi
         skip_cleanup: true
+      
       after_deploy: rm ~/.npmrc
