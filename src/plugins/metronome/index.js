@@ -176,9 +176,10 @@ function createPlugin () {
         )
       },
       events: [
-        'auction-status-updated',
-        'converter-status-updated',
         'attestation-threshold-updated',
+        'auction-status-updated',
+        'chain-hop-start-time-updated',
+        'converter-status-updated',
         'wallet-error'
       ],
       name: 'metronome'
