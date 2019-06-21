@@ -27,15 +27,30 @@ const {
   importMet,
   sendMet
 } = require('./token-api')
-const getAttestationThreshold = require('./validator-status')
-const getAuctionStatus = require('./auction-status')
-const getConverterStatus = require('./converter-status')
 const auctionEvents = require('./auction-events')
 const converterEvents = require('./converter-events')
+const getAttestationThreshold = require('./validator-status')
+const getAuctionStatus = require('./auction-status')
+const getChainHopStartTime = require('./porter-status')
+const getConverterStatus = require('./converter-status')
 const porterEvents = require('./porter-events')
 const validatorEvents = require('./validator-events')
 
+/**
+ * Creates an instance of the Metronome plugin.
+ *
+ * @returns {{start:Function,stop:Function}} The plugin top-level API.
+ */
 function createPlugin () {
+  /**
+   * Start the plugin.
+   *
+   * @param {object} params The start parameters.
+   * @param {object} params.config The configuration options.
+   * @param {object} params.eventBus The cross-plugin event emitter.
+   * @param {object} params.plugins All other plugins.
+   * @returns {{api:object,events:string[],name:string}} The plugin API.
+   */
   function start ({ config, eventBus, plugins }) {
     debug.enabled = config.debug
 
@@ -74,6 +89,10 @@ function createPlugin () {
         getAttestationThreshold(web3, chainId)
           .then(function (status) {
             eventBus.emit('attestation-threshold-updated', status)
+          }),
+        getChainHopStartTime(web3, chainId)
+          .then(function (status) {
+            eventBus.emit('chain-hop-start-time-updated', status)
           })
       ])
         .catch(function (err) {
@@ -166,6 +185,9 @@ function createPlugin () {
     }
   }
 
+  /**
+   * Stop the plugin.
+   */
   function stop () {}
 
   return {
