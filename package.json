@@ -42,7 +42,7 @@
     "p-retry": "^3.0.1",
     "patch-package": "^5.1.1",
     "promise-all-props": "^1.0.1",
-    "socket.io-client": "^2.2.0",
+    "socket.io-client": "2.1.1",
     "tough-cookie": "^2.5.0",
     "web3": "1.0.0-beta.37",
     "web3-patches": "^1.1.0"
