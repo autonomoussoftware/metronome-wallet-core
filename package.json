@@ -37,7 +37,7 @@
     "ethereumjs-wallet": "^0.6.3",
     "lodash": "^4.17.10",
     "merkletreejs": "0.0.25",
-    "metronome-contracts": "^2.3.0",
+    "metronome-contracts": "^2.4.0",
     "p-defer": "^1.0.0",
     "p-retry": "^3.0.1",
     "patch-package": "^5.1.1",
