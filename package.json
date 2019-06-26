@@ -1,6 +1,6 @@
 {
   "name": "metronome-wallet-core",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "Core logic to develop an Ethereum Metronome wallet",
   "keywords": [
     "crypto",
