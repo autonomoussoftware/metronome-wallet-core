@@ -38,6 +38,7 @@
     "lodash": "^4.17.10",
     "merkletreejs": "0.0.25",
     "metronome-contracts": "^2.4.0",
+    "metronome-sdk-status": "^1.1.0",
     "p-defer": "^1.0.0",
     "p-retry": "^3.0.1",
     "patch-package": "^5.1.1",

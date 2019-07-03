@@ -1,22 +1,19 @@
 'use strict'
 
+const createMetronomeStatus = require('metronome-sdk-status')
 const MetronomeContracts = require('metronome-contracts')
-const promiseAllProps = require('promise-all-props')
 
 function getConverterStatus (web3, chain) {
-  const { AutonomousConverter } = new MetronomeContracts(web3, chain)
+  const contracts = new MetronomeContracts(web3, chain)
+  const metronomeStatus = createMetronomeStatus(contracts)
 
-  const {
-    getMetBalance,
-    getEthBalance,
-    getEthForMetResult
-  } = AutonomousConverter.methods
-
-  return promiseAllProps({
-    availableMet: getMetBalance().call(),
-    availableCoin: getEthBalance().call(),
-    currentPrice: getEthForMetResult(web3.utils.toWei('1')).call()
-  })
+  return metronomeStatus
+    .getConverterStatus()
+    .then(({ currentConverterPrice, coinBalance, metBalance }) => ({
+      availableMet: metBalance,
+      availableCoin: coinBalance,
+      currentPrice: currentConverterPrice
+    }))
 }
 
 module.exports = getConverterStatus

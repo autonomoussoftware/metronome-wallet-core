@@ -1,24 +1,29 @@
 'use strict'
 
+const createMetronomeStatus = require('metronome-sdk-status')
 const MetronomeContracts = require('metronome-contracts')
 
 function getAuctionStatus (web3, chain) {
-  const { Auctions } = new MetronomeContracts(web3, chain)
+  const contracts = new MetronomeContracts(web3, chain)
+  const metronomeStatus = createMetronomeStatus(contracts)
 
-  return Auctions.methods.heartbeat().call()
-    .then(({
-      currAuction,
-      currentAuctionPrice,
-      genesisGMT,
-      minting,
-      nextAuctionGMT
-    }) => ({
-      currentAuction: Number.parseInt(currAuction),
-      currentPrice: currentAuctionPrice,
-      genesisTime: Number.parseInt(genesisGMT, 10),
-      nextAuctionStartTime: Number.parseInt(nextAuctionGMT, 10),
-      tokenRemaining: minting
-    }))
+  return metronomeStatus
+    .getAuctionStatus()
+    .then(
+      ({
+        currAuction,
+        currentAuctionPrice,
+        genesisTime,
+        minting,
+        nextAuctionTime
+      }) => ({
+        currentAuction: Number.parseInt(currAuction),
+        currentPrice: currentAuctionPrice,
+        genesisTime,
+        nextAuctionStartTime: nextAuctionTime,
+        tokenRemaining: minting
+      })
+    )
 }
 
 module.exports = getAuctionStatus
