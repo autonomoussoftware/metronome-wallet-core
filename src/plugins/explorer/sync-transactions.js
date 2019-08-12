@@ -1,6 +1,8 @@
 'use strict'
 
+const { identity } = require('lodash')
 const debug = require('debug')('met-wallet:core:explorer:syncer')
+const pAll = require('p-all')
 const pDefer = require('p-defer')
 
 // eslint-disable-next-line max-params
@@ -87,36 +89,44 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
   }
 
   const getPastEvents = (fromBlock, toBlock, address) =>
-    Promise.all(eventsRegistry.getAll().map(function (registration) {
-      const {
-        contractAddress,
-        abi,
-        eventName,
-        filter,
-        metaParser,
-        minBlock = 0
-      } = registration(address)
+    pAll(
+      eventsRegistry
+        .getAll()
+        .map(function (registration) {
+          const {
+            contractAddress,
+            abi,
+            eventName,
+            filter,
+            metaParser,
+            minBlock = 0
+          } = registration(address)
 
-      const contract = new web3.eth.Contract(abi, contractAddress)
+          const contract = new web3.eth.Contract(abi, contractAddress)
 
-      // Ignore missing events
-      if (!contract.events[eventName]) {
-        debug(`Could not get past events for ${eventName}`)
-        return Promise.resolve()
-      }
+          // Ignore missing events
+          if (!contract.events[eventName]) {
+            debug(`Could not get past events for ${eventName}`)
+            return null
+          }
 
-      return contract.getPastEvents(eventName, {
-        fromBlock: Math.max(fromBlock, minBlock),
-        toBlock: Math.max(toBlock, minBlock),
-        filter
-      })
-        .then(function (events) {
-          debug(`${events.length} past ${eventName} events retrieved`)
-          return Promise.all(
-            events.map(queue.addEvent(address, metaParser))
-          )
+          return () =>
+            contract
+              .getPastEvents(eventName, {
+                fromBlock: Math.max(fromBlock, minBlock),
+                toBlock: Math.max(toBlock, minBlock),
+                filter
+              })
+              .then(function (events) {
+                debug(`${events.length} past ${eventName} events retrieved`)
+                return Promise.all(
+                  events.map(queue.addEvent(address, metaParser))
+                )
+              })
         })
-    }))
+        .filter(identity),
+      { concurrency: 5 }
+    )
 
   const subscriptions = []
 
