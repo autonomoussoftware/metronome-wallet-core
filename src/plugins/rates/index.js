@@ -1,25 +1,51 @@
 'use strict'
 
-const rateStreams = {
-  bittrex: require('./bittrex-stream'),
-  coincap: require('./coincap-stream')
-}
+const { getExchangeRate } = require('safe-exchange-rate')
+const debug = require('debug')('met-wallet:core:rates')
 
+const createStream = require('./stream')
+
+/**
+ * Create a plugin instance.
+ *
+ * @returns {({ start: Function, stop: () => void})} The plugin instance.
+ */
 function createPlugin () {
   let dataStream
 
+  /**
+   * Start the plugin instance.
+   *
+   * @param {object} options Start options.
+   * @returns {{ events: string[] }} The instance details.
+   */
   function start ({ config, eventBus }) {
-    const { ratesSource, ratesUpdateMs, symbol } = config
+    debug.enabled = debug.enabled || config.debug
 
-    const createStream = rateStreams[ratesSource.toLowerCase()]
-    dataStream = createStream(symbol, ratesUpdateMs)
+    debug('Plugin starting')
+
+    const { ratesUpdateMs, symbol } = config
+
+    const getRate = () =>
+      getExchangeRate(`${symbol}:USD`).then(function (rate) {
+        if (typeof rate !== 'number') {
+          throw new Error(`No exchange rate retrieved for ${symbol}`)
+        }
+        return rate
+      })
+
+    dataStream = createStream(getRate, ratesUpdateMs)
 
     dataStream.on('data', function (price) {
+      debug('Coin price received')
+
       const priceData = { token: symbol, currency: 'USD', price }
       eventBus.emit('coin-price-updated', priceData)
     })
 
     dataStream.on('error', function (err) {
+      debug('Data stream error')
+
       eventBus.emit('wallet-error', {
         inner: err,
         message: `Could not get exchange rate for ${symbol}`,
@@ -28,14 +54,16 @@ function createPlugin () {
     })
 
     return {
-      events: [
-        'coin-price-updated',
-        'wallet-error'
-      ]
+      events: ['coin-price-updated', 'wallet-error']
     }
   }
 
+  /**
+   * Stop the plugin instance.
+   */
   function stop () {
+    debug('Plugin stopping')
+
     dataStream.destroy()
   }
 
