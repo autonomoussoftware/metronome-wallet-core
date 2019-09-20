@@ -31,17 +31,19 @@ const porterApi = proxyquire('../src/plugins/metronome/porter-api', {
 const getMerkleRoot = porterApi.getMerkleRoot({}, 'chain')
 
 describe('TokenPorter API', function () {
-  it('should return the root of the last 16 burn hashes', () =>
-    getMerkleRoot('24').then(function (root) {
+  it('should return the root of the last 16 burn hashes', function () {
+    return getMerkleRoot('24').then(function (root) {
       root.should.equal(
         '0x4742e6b7570e0e65d74d9de33bff85dc6c9c61614e2d099cf8596df4d550a45a'
       )
-    }))
+    })
+  })
 
-  it('should return the root of the last 10 burn hashes', () =>
-    getMerkleRoot('8').then(function (root) {
+  it('should return the root of the last 10 burn hashes', function () {
+    return getMerkleRoot('8').then(function (root) {
       root.should.equal(
         '0xa57cc928900b85a888948eb49b669d4a3e8d2b4f7ad47f96c6a941e3b7886c7e'
       )
-    }))
+    })
+  })
 })

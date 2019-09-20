@@ -266,7 +266,9 @@ describe('Explorer plugin', function () {
 
       const { api } = explorer.start({ config, eventBus, plugins })
 
-      api.refreshTransaction(hash, address)
+      api
+        .refreshTransaction(hash, address)
+        .then(noop)
         .then(end)
         .catch(end)
     })
