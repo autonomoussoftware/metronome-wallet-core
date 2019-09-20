@@ -5,6 +5,8 @@
   ],
   "root": true,
   "rules": {
-    "no-magic-numbers": "off"
+    "jsdoc/require-jsdoc": "warn",
+    "no-magic-numbers": "off",
+    "require-jsdoc": "off"
   }
 }
