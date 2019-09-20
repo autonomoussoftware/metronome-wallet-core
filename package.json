@@ -31,8 +31,6 @@
   "dependencies": {
     "axios": "0.18.1",
     "axios-cookiejar-support": "^0.4.2",
-    "bittrex-node": "^1.2.1",
-    "coincap-lib": "^1.0.0",
     "debug": "^4.1.1",
     "ethereumjs-wallet": "^0.6.3",
     "lodash": "^4.17.15",
