@@ -19,7 +19,7 @@
   "repository": "autonomoussoftware/metronome-wallet-core",
   "scripts": {
     "check:outdated": "npm-check -i eslint-config-plugin* -i husky",
-    "check": "dependency-check . --no-dev --ignore-module patch-package --ignore-module web3-patches",
+    "check": "dependency-check . --no-dev --ignore-module patch-package --ignore-module websocket-reconnector",
     "coverage": "nyc --lines 95 --functions 95 --branches 95 --reporter=lcov --reporter=text npm test",
     "lint": "eslint --cache .",
     "precommit": "npm run lint",
@@ -45,7 +45,8 @@
     "safe-exchange-rate": "^1.0.0",
     "socket.io-client": "2.1.1",
     "tough-cookie": "^2.5.0",
-    "web3": "^1.2.1"
+    "web3": "^1.2.1",
+    "websocket-reconnector": "^1.1.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
