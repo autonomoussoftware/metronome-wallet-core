@@ -1,7 +1,7 @@
 'use strict'
 
 const { debounce, groupBy, merge, noop, reduce } = require('lodash')
-const debug = require('debug')('met-wallet:core:explorer:queue')
+const debug = require('debug')('metronome-wallet:core:explorer:queue')
 const getTransactionStatus = require('./transaction-status')
 const pDefer = require('p-defer')
 const promiseAllProps = require('promise-all-props')

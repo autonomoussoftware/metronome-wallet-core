@@ -1,7 +1,7 @@
 'use strict'
 
 const { getExchangeRate } = require('safe-exchange-rate')
-const debug = require('debug')('met-wallet:core:rates')
+const debug = require('debug')('metronome-wallet:core:rates')
 
 const createStream = require('./stream')
 

@@ -1,7 +1,7 @@
 'use strict'
 
-const { utils: { isAddress, toChecksumAddress } } = require('web3')
-const debug = require('debug')('met-wallet:core:tokens')
+const { isAddress, toChecksumAddress } = require('web3-utils')
+const debug = require('debug')('metronome-wallet:core:tokens')
 const Web3 = require('web3')
 
 const abi = require('./erc20-abi.json')

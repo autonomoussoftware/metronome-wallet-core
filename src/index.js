@@ -1,7 +1,7 @@
 'use strict'
 
 const { merge, union } = require('lodash')
-const debug = require('debug')('met-wallet:core')
+const debug = require('debug')('metronome-wallet:core')
 const EventEmitter = require('events')
 
 const defaultConfig = require('./defaultConfig')
@@ -29,8 +29,10 @@ function createCore () {
 
     eventBus = new EventEmitter()
 
-    debug.enabled = config.debug
     if (config.debug) {
+      process.env.DEBUG = `${
+        process.env.DEBUG ? `${process.env.DEBUG},` : ''
+      }metronome-wallet:core*`
       const emit = eventBus.emit.bind(eventBus)
       eventBus.emit = function (eventName, ...args) {
         debug('<<--', eventName, ...args)

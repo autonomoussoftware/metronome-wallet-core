@@ -1,6 +1,6 @@
 'use strict'
 
-const debug = require('debug')('met-wallet:core:explorer')
+const debug = require('debug')('metronome-wallet:core:explorer')
 const Web3 = require('web3')
 
 const createEventsRegistry = require('./events')
@@ -43,7 +43,7 @@ function createPlugin () {
       eventBus.emit('coin-block', { hash, number, timestamp })
     })
     blocksStream.on('error', function (err) {
-      debug('Could not get lastest block')
+      debug('Could not get lastest block: %s', err.message)
       eventBus.emit('wallet-error', {
         inner: err,
         message: 'Could not get lastest block',

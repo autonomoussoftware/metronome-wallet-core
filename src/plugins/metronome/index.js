@@ -1,6 +1,5 @@
 'use strict'
 
-const debug = require('debug')('met-wallet:core:metronome')
 const MetronomeContracts = require('metronome-contracts')
 const Web3 = require('web3')
 
@@ -52,8 +51,6 @@ function createPlugin () {
    * @returns {{api:object,events:string[],name:string}} The plugin API.
    */
   function start ({ config, eventBus, plugins }) {
-    debug.enabled = config.debug
-
     const { chainId, gasOverestimation } = config
     const { eth, explorer, tokens } = plugins
 

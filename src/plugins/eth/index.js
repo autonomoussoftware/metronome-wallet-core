@@ -1,6 +1,6 @@
 'use strict'
 
-const debug = require('debug')('met-wallet:core:eth')
+const debug = require('debug')('metronome-wallet:core:eth')
 
 const { createWeb3, destroyWeb3 } = require('./web3')
 const checkChain = require('./check-chain')

@@ -5,7 +5,7 @@ const { create: createAxios } = require('axios')
 const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
 const { isArrayLike } = require('lodash')
 const blockscout = require('./blockscout')
-const debug = require('debug')('met-wallet:core:explorer:indexer')
+const debug = require('debug')('metronome-wallet:core:explorer:indexer')
 const EventEmitter = require('events')
 const io = require('socket.io-client')
 const pRetry = require('p-retry')
@@ -18,9 +18,7 @@ const pRetry = require('p-retry')
  * @returns {object} The exposed indexer API.
  */
 function createIndexer (config, eventBus) {
-  const { chainId, debug: enableDebug, indexerUrl, useNativeCookieJar } = config
-
-  debug.enabled = enableDebug
+  const { chainId, indexerUrl, useNativeCookieJar } = config
 
   let axios
   let jar
@@ -45,7 +43,7 @@ function createIndexer (config, eventBus) {
       .then(best =>
         best && best.number && best.hash
           ? best
-          : new Error('Indexer\' response is invalid for best block')
+          : new Error('Indexer response is invalid for best block')
       )
 
   const getTransactions = (from, to, address) =>

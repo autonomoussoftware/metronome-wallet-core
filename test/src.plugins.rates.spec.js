@@ -57,7 +57,7 @@ describe('Rates', function () {
       }
     })
 
-    const config = { debug: true, ratesUpdateMs: 100, symbol }
+    const config = { ratesUpdateMs: 100, symbol }
 
     plugin.start({ config, eventBus })
   })

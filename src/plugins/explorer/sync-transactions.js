@@ -1,7 +1,7 @@
 'use strict'
 
 const { identity } = require('lodash')
-const debug = require('debug')('met-wallet:core:explorer:syncer')
+const debug = require('debug')('metronome-wallet:core:explorer:syncer')
 const pAll = require('p-all')
 const pDefer = require('p-defer')
 

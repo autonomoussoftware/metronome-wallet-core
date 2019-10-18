@@ -1,15 +1,15 @@
 'use strict'
 
-const debug = require('debug')('met-wallet:core:eth:web3')
+const debug = require('debug')('metronome-wallet:core:eth:web3')
 const Web3 = require('web3')
 
 function createWeb3 (config, eventBus) {
-  debug.enabled = config.debug
-
-  const web3 = new Web3(new Web3.providers.WebsocketProvider(
-    config.wsApiUrl,
-    { autoReconnect: true, timeout: config.web3Timeout }
-  ))
+  const web3 = new Web3(
+    new Web3.providers.WebsocketProvider(config.wsApiUrl, {
+      autoReconnect: true,
+      timeout: config.web3Timeout
+    })
+  )
 
   web3.currentProvider.on('connect', function () {
     debug('Web3 provider connected')

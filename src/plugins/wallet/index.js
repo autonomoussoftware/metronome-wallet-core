@@ -1,6 +1,5 @@
 'use strict'
 
-const debug = require('debug')('met-wallet:core:wallet')
 const Web3 = require('web3')
 
 const api = require('./api')
