@@ -1,5 +1,6 @@
 {
   "chainId": 3,
+  "chainType": "ethereum",
   "debug": false,
   "displayName": "Local",
   "explorerDebounce": 2000,
