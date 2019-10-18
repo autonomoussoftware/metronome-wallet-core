@@ -4,6 +4,7 @@
     "bloq/mocha"
   ],
   "rules": {
-    "mocha/no-setup-in-describe": "warn"
+    "mocha/no-setup-in-describe": "warn",
+    "mocha/no-skipped-tests": "off"
   }
 }
