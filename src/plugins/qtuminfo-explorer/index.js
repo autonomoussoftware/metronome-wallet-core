@@ -24,18 +24,18 @@ function createPlugin () {
   function start ({ config, eventBus }) {
     debug('Starting')
 
-    const { indexerUrl, useNativeCookieJar } = config
+    const { explorerUrl, useNativeCookieJar } = config
 
     // Create cookiejar and axios
 
     const jar = new CookieJar()
     const axios = useNativeCookieJar
       ? createAxios({
-        baseURL: indexerUrl
+        baseURL: explorerUrl
       })
       : axiosCookieJarSupport(
         createAxios({
-          baseURL: indexerUrl,
+          baseURL: explorerUrl,
           jar,
           withCredentials: true
         })
@@ -90,10 +90,10 @@ function createPlugin () {
 
     getCookiePromise
       .then(function () {
-        socket = io(indexerUrl, {
+        socket = io(explorerUrl, {
           autoConnect: false,
           extraHeaders: jar
-            ? { Cookie: jar.getCookiesSync(indexerUrl).join(';') }
+            ? { Cookie: jar.getCookiesSync(explorerUrl).join(';') }
             : {}
         })
 

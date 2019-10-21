@@ -3,6 +3,7 @@
  * @property {number | string} [chainId]
  * @property {string} [chainType]
  * @property {boolean} [debug]
+ * @property {string} [explorerUrl]
  * @property {string} [indexerUrl]
  * @property {string} [nodeUrl]
  * @property {string} [symbol]
