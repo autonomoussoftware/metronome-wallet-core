@@ -20,9 +20,7 @@ function createPlugin () {
    * @returns {{ events: string[] }} The instance details.
    */
   function start ({ config, eventBus }) {
-    debug.enabled = debug.enabled || config.debug
-
-    debug('Plugin starting')
+    debug('Starting')
 
     const { ratesUpdateMs, symbol } = config
 
@@ -62,7 +60,7 @@ function createPlugin () {
    * Stop the plugin instance.
    */
   function stop () {
-    debug('Plugin stopping')
+    debug('Stopping')
 
     dataStream.destroy()
   }

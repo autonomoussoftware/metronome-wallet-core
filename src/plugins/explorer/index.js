@@ -22,8 +22,8 @@ function createPlugin () {
   /**
    * Start the plugin.
    *
-   * @param {StartOptions} options The starting options.
-   * @returns {PluginInterface} The plugin API.
+   * @param {CoreOptions} options The starting options.
+   * @returns {CorePluginInterface} The plugin API.
    */
   function start ({ config, eventBus, plugins }) {
     const web3 = new Web3(plugins.eth.web3Provider)

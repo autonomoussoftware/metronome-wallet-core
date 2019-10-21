@@ -17,11 +17,11 @@ function createPlugin () {
   /**
    * Start the plugin.
    *
-   * @param {StartOptions} options The starting options.
-   * @returns {PluginInterface} The plugin API.
+   * @param {CoreOptions} options The starting options.
+   * @returns {CorePluginInterface} The plugin API.
    */
   function start ({ eventBus, plugins }) {
-    debug('Initiating Ethereum blocks stream')
+    debug('Initializing stream')
 
     web3 = new Web3(plugins.eth.web3Provider)
 
@@ -48,13 +48,8 @@ function createPlugin () {
    * Stop the plugin.
    */
   function stop () {
-    if (web3) {
-      web3 = null
-    }
-    if (blocksStream) {
-      blocksStream.destroy()
-      blocksStream = null
-    }
+    web3 = null
+    blocksStream = blocksStream && blocksStream.destroy()
   }
 
   return {
