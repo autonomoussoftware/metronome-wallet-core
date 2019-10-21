@@ -1,22 +1,30 @@
 'use strict'
 
-const debug = require('debug')('metronome-wallet:core:explorer')
 const Web3 = require('web3')
 
 const createEventsRegistry = require('./events')
 const createIndexer = require('./indexer')
 const createLogTransaction = require('./log-transaction')
 const createQueue = require('./queue')
-const createStream = require('./blocks-stream')
 const createTransactionSyncer = require('./sync-transactions')
 const refreshTransaction = require('./refresh-transactions')
 const tryParseEventLog = require('./parse-log')
 
+/**
+ * Create the plugin.
+ *
+ * @returns {CorePlugin} The plugin.
+ */
 function createPlugin () {
-  let blocksStream
   let indexer
   let syncer
 
+  /**
+   * Start the plugin.
+   *
+   * @param {StartOptions} options The starting options.
+   * @returns {PluginInterface} The plugin API.
+   */
   function start ({ config, eventBus, plugins }) {
     const web3 = new Web3(plugins.eth.web3Provider)
 
@@ -34,21 +42,6 @@ function createPlugin () {
       indexer
     )
 
-    debug('Initiating blocks stream')
-    blocksStream = createStream(web3)
-    blocksStream.on('data', function ({ hash, number, timestamp }) {
-      debug('New block', hash, number)
-      eventBus.emit('coin-block', { hash, number, timestamp })
-    })
-    blocksStream.on('error', function (err) {
-      debug('Could not get lastest block: %s', err.message)
-      eventBus.emit('wallet-error', {
-        inner: err,
-        message: 'Could not get lastest block',
-        meta: { plugin: 'explorer' }
-      })
-    })
-
     return {
       api: {
         logTransaction: createLogTransaction(queue),
@@ -58,20 +51,15 @@ function createPlugin () {
         syncTransactions: syncer.syncTransactions,
         tryParseEventLog: tryParseEventLog(web3, eventsRegistry)
       },
-      events: [
-        'coin-block',
-        'indexer-connection-status-changed',
-        'wallet-error'
-      ],
+      events: ['indexer-connection-status-changed', 'wallet-error'],
       name: 'explorer'
     }
   }
 
+  /**
+   * Stop the plugin.
+   */
   function stop () {
-    if (blocksStream) {
-    blocksStream.destroy()
-      blocksStream = null
-    }
     indexer = indexer && indexer.disconnect()
     syncer = syncer && syncer.stop()
   }

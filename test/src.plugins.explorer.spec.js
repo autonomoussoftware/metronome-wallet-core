@@ -1,6 +1,6 @@
 'use strict'
 
-const { noop, once, pick } = require('lodash')
+const { noop, once } = require('lodash')
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 const EventEmitter = require('events')
@@ -12,8 +12,6 @@ const Web3 = require('web3')
 
 const { randomAddress, randomTxId } = require('./utils')
 const MockProvider = require('./utils/mock-provider')
-
-const ethBlock666 = require('./fixtures/eth-block-666.json')
 
 const {
   getEventDataCreator
@@ -32,40 +30,6 @@ const should = chai.use(chaiAsPromised).should()
 const web3 = new Web3()
 
 describe('Explorer plugin', function () {
-  it('should emit an Ethereum block on start', function (done) {
-    const end = once(done)
-
-    const config = { chainType: 'ethereum' }
-
-    const eventBus = new EventEmitter()
-    eventBus.on('wallet-error', function (err) {
-      end(new Error(err.message))
-    })
-    eventBus.on('coin-block', function (latest) {
-      try {
-        latest.should.deep.equal(
-          pick(ethBlock666, ['hash', 'number', 'timestamp'])
-        )
-        end()
-      } catch (err) {
-        end(err)
-      }
-    })
-
-    const responses = {
-      eth_getBlockByNumber (tag) {
-        tag.should.equal('latest')
-        return ethBlock666
-      },
-      eth_subscribe: () => ''
-    }
-    const plugins = {
-      eth: { web3Provider: new MockProvider(responses) }
-    }
-
-    explorer.start({ config, eventBus, plugins })
-  })
-
   it('should queue a PromiEvent', function (done) {
     let hashReceived = false
     let receiptReceived = false
@@ -519,7 +483,6 @@ describe('Explorer plugin', function () {
       })
 
       const responses = {
-        eth_getBlockByNumber: () => ({ number: latestBlock }),
         eth_getLogs ({ fromBlock, toBlock }) {
           receivedFromBlock = Web3.utils.hexToNumber(fromBlock)
           receivedToBlock = Web3.utils.hexToNumber(toBlock)
@@ -532,13 +495,13 @@ describe('Explorer plugin', function () {
 
       getEventDataCreator(chain).map(api.registerEvent)
 
-      eventBus.once('coin-block', function () {
-        api
-          .refreshAllTransactions(randomAddress())
-          .then(noop)
-          .then(end)
-          .catch(end)
-      })
+      api
+        .refreshAllTransactions(randomAddress())
+        .then(noop)
+        .then(end)
+        .catch(end)
+
+      eventBus.emit('coin-block', { number: latestBlock })
     })
   })
 
