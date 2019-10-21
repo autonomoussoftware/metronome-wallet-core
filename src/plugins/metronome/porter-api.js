@@ -1,7 +1,7 @@
 'use strict'
 
 const { MerkleTree } = require('merkletreejs')
-const { utils: { BN, toBN } } = require('web3')
+const { BN, toBN } = require('web3-utils')
 const crypto = require('crypto')
 const MetronomeContracts = require('metronome-contracts')
 

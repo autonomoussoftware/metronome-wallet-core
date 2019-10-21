@@ -1,7 +1,7 @@
 'use strict'
 
 const MetronomeContracts = require('metronome-contracts')
-const { utils: { toBN } } = require('web3')
+const { toBN } = require('web3-utils')
 
 function estimateCoinToMetGas (web3, chain) {
   const { AutonomousConverter } = new MetronomeContracts(web3, chain)

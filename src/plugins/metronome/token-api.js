@@ -1,6 +1,6 @@
 'use strict'
 
-const { utils: { toHex } } = require('web3')
+const { toHex } = require('web3-utils')
 const MetronomeContracts = require('metronome-contracts')
 
 const { getExportMetFee } = require('./porter-api')

@@ -1,6 +1,6 @@
 'use strict'
 
-const { utils: { hexToUtf8 } } = require('web3')
+const { hexToUtf8 } = require('web3-utils')
 const MetronomeContracts = require('metronome-contracts')
 
 const exportMetaParser = ({ returnValues }) => ({

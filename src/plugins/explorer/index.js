@@ -70,9 +70,12 @@ function createPlugin () {
   }
 
   function stop () {
+    if (blocksStream) {
     blocksStream.destroy()
-    indexer.disconnect()
-    syncer.stop()
+      blocksStream = null
+    }
+    indexer = indexer && indexer.disconnect()
+    syncer = syncer && syncer.stop()
   }
 
   return {

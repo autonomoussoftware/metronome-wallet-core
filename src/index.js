@@ -4,7 +4,7 @@ const { merge, union } = require('lodash')
 const debug = require('debug')('metronome-wallet:core')
 const EventEmitter = require('events')
 
-const defaultConfig = require('./defaultConfig')
+const defaultConfig = require('./defaultConfig.json')
 
 const pluginCreators = [
   require('./plugins/rates'),
@@ -36,7 +36,7 @@ function createCore () {
       const emit = eventBus.emit.bind(eventBus)
       eventBus.emit = function (eventName, ...args) {
         debug('<<--', eventName, ...args)
-        emit(eventName, ...args)
+        return emit(eventName, ...args)
       }
     }
 

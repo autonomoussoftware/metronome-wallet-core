@@ -1,9 +1,7 @@
 'use strict'
 
 const { isMatch, isNumber } = require('lodash')
-const {
-  utils: { toChecksumAddress }
-} = require('web3')
+const { toChecksumAddress } = require('web3-utils')
 
 const createTryParseEventLog = require('./parse-log')
 
