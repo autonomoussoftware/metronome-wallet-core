@@ -15,20 +15,34 @@ const pluginsList = {
     'wallet',
     'tokens',
     'metronome'
-  ]
+  ],
+  qtum: ['rates', 'qtum', 'qtuminfo-explorer']
 }
 
+/**
+ * Create a wallet core instance.
+ *
+ * @returns {CoreInstance} The wallet core instance.
+ */
 function createCore () {
   let eventBus
   let initialized = false
   let plugins
 
+  /**
+   * Start the wallet core instance.
+   *
+   * @param {CoreConfig} givenConfig The wallet core config.
+   * @returns {CoreInterface} The code API.
+   */
   function start (givenConfig) {
     if (initialized) {
       throw new Error('Wallet Core already initialized')
     }
 
     const config = merge({}, defaultConfig, givenConfig)
+
+    debug('Starting %j', config)
 
     eventBus = new EventEmitter()
 
@@ -38,17 +52,15 @@ function createCore () {
       }metronome-wallet:core*`
       const emit = eventBus.emit.bind(eventBus)
       eventBus.emit = function (eventName, ...args) {
-        debug('<<--', eventName, ...args)
+        debug('<<-- %s', eventName, ...args)
         return emit(eventName, ...args)
       }
     }
 
-    debug('Wallet core starting', config)
-
     let coreEvents = []
     const pluginsApi = {}
 
-    const pluginCreators = pluginsList.ethereum.map(name =>
+    const pluginCreators = pluginsList[config.chainType].map(name =>
       require(`./plugins/${name}`)
     )
 
@@ -67,7 +79,7 @@ function createCore () {
       }
     })
 
-    debug('Exposed events', coreEvents)
+    debug('Exposed events %j', coreEvents)
 
     initialized = true
 
@@ -78,7 +90,12 @@ function createCore () {
     }
   }
 
+  /**
+   * Stop the wallet core instance.
+   */
   function stop () {
+    debug('Stopping')
+
     if (!initialized) {
       throw new Error('Wallet Core not initialized')
     }
@@ -93,8 +110,6 @@ function createCore () {
     eventBus = null
 
     initialized = false
-
-    debug('Wallet core stopped')
   }
 
   return {
