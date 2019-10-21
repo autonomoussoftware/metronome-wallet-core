@@ -50,7 +50,7 @@ describe('Core E2E', function () {
     const config = {
       chainId: 'test',
       chainType: 'qtum',
-      indexerUrl: process.env.QTUMTEST_INDEXER,
+      explorerUrl: process.env.QTUMTEST_EXPLORER,
       nodeUrl: process.env.QTUMTEST_NODE,
       ratesUpdateMs: 5000,
       symbol: 'QTUM'

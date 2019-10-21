@@ -1,11 +1,9 @@
 'use strict'
 
-const { CookieJar } = require('tough-cookie')
-const { create: createAxios } = require('axios').default
-const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
 const debug = require('debug')('metronome-wallet:core:qtuminfo-explorer')
-const io = require('socket.io-client')
-const pRetry = require('p-retry')
+
+const createHttpApi = require('./http')
+const startSocketIoConnection = require('./socket.io')
 
 /**
  * Create the plugin.
@@ -24,111 +22,46 @@ function createPlugin () {
   function start ({ config, eventBus }) {
     debug('Starting')
 
-    const { explorerUrl, useNativeCookieJar } = config
+    const httpApi = createHttpApi(config)
 
-    // Create cookiejar and axios
+    const emit = {
+      walletError: message =>
+        function (err) {
+          debug('Wallet error: %s', err.message)
+          eventBus.emit('wallet-error', {
+            inner: err,
+            message,
+            meta: { plugin: 'qtuminfo-explorer' }
+          })
+        },
 
-    const jar = new CookieJar()
-    const axios = useNativeCookieJar
-      ? createAxios({
-        baseURL: explorerUrl
-      })
-      : axiosCookieJarSupport(
-        createAxios({
-          baseURL: explorerUrl,
-          jar,
-          withCredentials: true
-        })
-      )
+      coinBlock: ({ height }) =>
+        httpApi
+          .getBlock(height)
+          .then(function ({ hash, timestamp }) {
+            debug('Best block', hash, height)
+            eventBus.emit('coin-block', { hash, number: height, timestamp })
+          })
+          .catch(emit.walletError('Could not get block')),
 
-    // Define explorer access functions
+      connectionStatus: (connected, data) =>
+        eventBus.emit('explorer-connection-status-changed', { connected, data })
+    }
 
-    const getInfo = () => axios('/api/info').then(res => res.data)
-    const getBlock = hashOrNumber =>
-      axios(`/api/block/${hashOrNumber}`).then(res => res.data)
-
-    // Define plugin emitters
-
-    const emitWalletError = message =>
-      function (err) {
-        debug('Wallet error: %s', err.message)
-        eventBus.emit('wallet-error', {
-          inner: err,
-          message,
-          meta: { plugin: 'qtuminfo-explorer' }
-        })
-      }
-
-    const emitCoinBlock = ({ height }) =>
-      getBlock(height)
-        .then(function ({ hash, timestamp }) {
-          debug('Best block', hash, height)
-          eventBus.emit('coin-block', { hash, number: height, timestamp })
-        })
-        .catch(emitWalletError('Could not get block'))
-
-    const emitConnectionStatus = (connected, data) =>
-      eventBus.emit('explorer-connection-status-changed', { connected, data })
-
-    // Obtain a cookie and create a Socket.IO connection
-
-    const getCookiePromise = useNativeCookieJar
-      ? Promise.resolve()
-      : pRetry(
-        () =>
-          getInfo().then(function () {
-            debug('Got explorer cookie')
-          }),
-        {
-          forever: true,
-          maxTimeout: 5000,
-          onFailedAttempt (err) {
-            debug('Failed to get explorer cookie', err.message)
-          }
-        }
-      )
-
-    getCookiePromise
-      .then(function () {
-        socket = io(explorerUrl, {
-          autoConnect: false,
-          extraHeaders: jar
-            ? { Cookie: jar.getCookiesSync(explorerUrl).join(';') }
-            : {}
-        })
-
-        socket.on('connect', function () {
-          debug('Connected')
-          emitConnectionStatus(true)
-        })
-        socket.on('disconnect', function (reason) {
-          debug('Disconnected')
-          emitConnectionStatus(false, reason)
-        })
-
-        socket.on('reconnect', function () {
-          emitConnectionStatus(true)
-        })
-
-        socket.on('error', emitWalletError('Explorer connection error'))
-
-        // Emit new blocks
-
-        socket.on('tip', emitCoinBlock)
-        socket.on('reorg', emitCoinBlock)
-
-        socket.open()
-      })
-      .catch(emitWalletError('Something very wrong happened...'))
+    socket = startSocketIoConnection(config, httpApi, emit)
 
     // Emit the current block
-
-    getInfo()
-      .then(emitCoinBlock)
-      .catch(emitWalletError('Could not get blockchain info'))
+    httpApi
+      .getInfo()
+      .then(emit.coinBlock)
+      .catch(emit.walletError('Could not get blockchain info'))
 
     return {
-      events: ['coin-block', 'qtum-explorer', 'wallet-error']
+      events: [
+        'coin-block',
+        'explorer-connection-status-changed',
+        'wallet-error'
+      ]
     }
   }
 
