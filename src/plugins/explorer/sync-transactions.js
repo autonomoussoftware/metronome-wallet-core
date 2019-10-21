@@ -7,8 +7,6 @@ const pDefer = require('p-defer')
 
 // eslint-disable-next-line max-params
 function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
-  debug.enabled = config.debug
-
   const deferred = pDefer()
   const gotBestBlockPromise = deferred.promise
 

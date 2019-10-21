@@ -9,8 +9,6 @@ function createPlugin () {
   let web3 = null
 
   function start ({ config, eventBus }) {
-    debug.enabled = config.debug
-
     web3 = createWeb3(config, eventBus)
 
     checkChain(web3, config.chainId)

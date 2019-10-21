@@ -9,8 +9,6 @@ function createPlugin () {
   let addresses = []
 
   function start ({ config, eventBus, plugins }) {
-    debug.enabled = config.debug
-
     const web3 = new Web3(plugins.eth.web3Provider)
     let walletId
 

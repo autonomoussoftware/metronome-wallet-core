@@ -7,8 +7,6 @@ const pDefer = require('p-defer')
 const promiseAllProps = require('promise-all-props')
 
 function createQueue (config, eventBus, web3) {
-  debug.enabled = config.debug
-
   const metasCache = {}
 
   let pendingEvents = []
