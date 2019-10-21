@@ -7,7 +7,15 @@ const EventEmitter = require('events')
 const defaultConfig = require('./defaultConfig.json')
 
 const pluginsList = {
-  ethereum: ['rates', 'eth', 'explorer', 'wallet', 'tokens', 'metronome']
+  ethereum: [
+    'rates',
+    'eth',
+    'eth-blocks',
+    'explorer',
+    'wallet',
+    'tokens',
+    'metronome'
+  ]
 }
 
 function createCore () {
