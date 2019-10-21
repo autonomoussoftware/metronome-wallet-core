@@ -26,7 +26,8 @@
     "prepare": "patch-package",
     "prepublishOnly": "npm run precommit && npm run prepush && tag-matches",
     "prepush": "npm run check && npm test",
-    "test": "mocha"
+    "test": "mocha",
+    "test:e2e": "E2E=true mocha --exit test/e2e.spec.js"
   },
   "dependencies": {
     "axios": "0.18.1",
@@ -56,6 +57,7 @@
     "chai-as-promised": "^7.1.1",
     "check-tag-matches": "^1.0.0",
     "dependency-check": "^4.1.0",
+    "dotenv": "^8.2.0",
     "eslint": "^6.5.1",
     "eslint-config-bloq": "^2.2.0",
     "eslint-config-standard": "^14.1.0",

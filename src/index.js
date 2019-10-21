@@ -6,14 +6,9 @@ const EventEmitter = require('events')
 
 const defaultConfig = require('./defaultConfig.json')
 
-const pluginCreators = [
-  require('./plugins/rates'),
-  require('./plugins/eth'),
-  require('./plugins/explorer'),
-  require('./plugins/wallet'),
-  require('./plugins/tokens'),
-  require('./plugins/metronome')
-]
+const pluginsList = {
+  ethereum: ['rates', 'eth', 'explorer', 'wallet', 'tokens', 'metronome']
+}
 
 function createCore () {
   let eventBus
@@ -44,6 +39,10 @@ function createCore () {
 
     let coreEvents = []
     const pluginsApi = {}
+
+    const pluginCreators = pluginsList.ethereum.map(name =>
+      require(`./plugins/${name}`)
+    )
 
     plugins = pluginCreators.map(create => create())
 
