@@ -1,52 +1,27 @@
 'use strict'
 
+const debug = require('debug')('metronome-wallet:core:wallet')
 const Web3 = require('web3')
 
 const api = require('./api')
 const hdkey = require('./hdkey')
 
+/**
+ * Create the plugin.
+ *
+ * @returns {CorePlugin} The plugin.
+ */
 function createPlugin () {
-  let addresses = []
+  /**
+   * Start the plugin.
+   *
+   * @param {CoreOptions} options The starting options.
+   * @returns {CorePluginInterface} The plugin API.
+   */
+  function start ({ plugins }) {
+    debug('Starting')
 
-  function start ({ config, eventBus, plugins }) {
     const web3 = new Web3(plugins.eth.web3Provider)
-    let walletId
-
-    function emitBalance (address) {
-      web3.eth.getBalance(address)
-        .then(function (balance) {
-          eventBus.emit('wallet-state-changed', {
-            [walletId]: {
-              addresses: {
-                [address]: {
-                  balance
-                }
-              }
-            }
-          })
-        })
-        .catch(function (err) {
-          eventBus.emit('wallet-error', {
-            inner: err,
-            message: `Could not get ${config.symbol} balance`,
-            meta: { plugin: 'wallet' }
-          })
-        })
-    }
-
-    eventBus.on('open-wallets', function ({ address, activeWallet }) {
-      addresses.push(address)
-      walletId = activeWallet
-      emitBalance(address)
-    })
-
-    eventBus.on('coin-tx', function () {
-      addresses.forEach(function (address) {
-        if (walletId) {
-          emitBalance(address)
-        }
-      })
-    })
 
     return {
       api: {
@@ -56,22 +31,24 @@ function createPlugin () {
         getGasLimit: api.estimateGas(web3),
         getGasPrice: api.getGasPrice(web3),
         sendCoin: api.sendSignedTransaction(
-          web3, plugins.explorer.logTransaction
+          web3,
+          plugins.explorer.logTransaction
         )
       },
-      events: [
-        'wallet-error',
-        'wallet-state-changed'
-      ],
+      events: ['wallet-error', 'wallet-state-changed'],
       name: 'wallet'
     }
   }
 
-  function stop () {
-    addresses = []
-  }
+  /**
+   * Stop the plugin.
+   */
+  function stop () {}
 
-  return { start, stop }
+  return {
+    start,
+    stop
+  }
 }
 
 module.exports = createPlugin

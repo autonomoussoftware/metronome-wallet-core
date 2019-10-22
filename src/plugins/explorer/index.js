@@ -1,5 +1,6 @@
 'use strict'
 
+const debug = require('debug')('metronome-wallet:core:explorer')
 const Web3 = require('web3')
 
 const createEventsRegistry = require('./events')
@@ -26,6 +27,8 @@ function createPlugin () {
    * @returns {CorePluginInterface} The plugin API.
    */
   function start ({ config, eventBus, plugins }) {
+    debug('Starting')
+
     const web3 = new Web3(plugins.eth.web3Provider)
 
     const eventsRegistry = createEventsRegistry()
@@ -44,6 +47,7 @@ function createPlugin () {
 
     return {
       api: {
+        getBalance: address => web3.eth.getBalance(address),
         logTransaction: createLogTransaction(queue),
         refreshAllTransactions: syncer.refreshAllTransactions,
         refreshTransaction: refreshTransaction(web3, eventsRegistry, queue),

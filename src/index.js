@@ -12,11 +12,12 @@ const pluginsList = {
     'eth',
     'eth-blocks',
     'explorer',
+    'coin-balance',
     'wallet',
     'tokens',
     'metronome'
   ],
-  qtum: ['rates', 'qtum', 'qtuminfo-explorer']
+  qtum: ['rates', 'qtum', 'qtuminfo-explorer', 'coin-balance']
 }
 
 /**
@@ -60,11 +61,11 @@ function createCore () {
     let coreEvents = []
     const pluginsApi = {}
 
-    const pluginCreators = pluginsList[config.chainType].map(name =>
-      require(`./plugins/${name}`)
-    )
+    debug('Initializing plugins for %s', config.chainType)
 
-    plugins = pluginCreators.map(create => create())
+    plugins = pluginsList[config.chainType]
+      .map(name => require(`./plugins/${name}`))
+      .map(create => create())
 
     plugins.forEach(function (plugin) {
       const params = { config, eventBus, plugins: pluginsApi }

@@ -32,11 +32,14 @@ function createHttpApi (config) {
 
   // Define explorer access functions
 
+  const getAddressBalance = address =>
+    axios(`/api/address/${address}/balance`).then(res => res.data.toString())
   const getBlock = hashOrNumber =>
     axios(`/api/block/${hashOrNumber}`).then(res => res.data)
   const getInfo = () => axios('/api/info').then(res => res.data)
 
   return {
+    getAddressBalance,
     getBlock,
     getCookie,
     getInfo

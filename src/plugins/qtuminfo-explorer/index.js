@@ -57,11 +57,15 @@ function createPlugin () {
       .catch(emit.walletError('Could not get blockchain info'))
 
     return {
+      api: {
+        getBalance: address => httpApi.getAddressBalance(address)
+      },
       events: [
         'coin-block',
         'explorer-connection-status-changed',
         'wallet-error'
-      ]
+      ],
+      name: 'explorer'
     }
   }
 
