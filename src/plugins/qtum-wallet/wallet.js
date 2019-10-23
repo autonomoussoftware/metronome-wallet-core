@@ -8,7 +8,7 @@ const wif = require('wif')
 /**
  * Create a Qtum wallet RPC provider.
  *
- * @param {'main' | 'test'} chainId The ID of the chain.
+ * @param {string} chainId The ID of the chain: `test` or `main`.
  * @param {string} seed The wallet seed string.
  * @returns {WalletRPCProvider} A signing RPC provider.
  */
