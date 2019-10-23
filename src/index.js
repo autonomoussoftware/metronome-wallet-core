@@ -6,6 +6,23 @@ const EventEmitter = require('events')
 
 const defaultConfig = require('./defaultConfig.json')
 
+// Require all plugins in advance to allow static check of missing dependencies
+/* eslint-disable quote-props */
+const plugins = {
+  'coin-balance': require('./plugins/coin-balance'),
+  eth: require('./plugins/eth'),
+  'eth-blocks': require('./plugins/eth-blocks'),
+  'eth-wallet': require('./plugins/eth-wallet'),
+  explorer: require('./plugins/explorer'),
+  metronome: require('./plugins/metronome'),
+  qtum: require('./plugins/qtum'),
+  'qtum-wallet': require('./plugins/qtum-wallet'),
+  'qtuminfo-explorer': require('./plugins/qtuminfo-explorer'),
+  rates: require('./plugins/rates'),
+  tokens: require('./plugins/tokens')
+}
+/* eslint-enable quote-props */
+
 const pluginsList = {
   ethereum: [
     'rates',
@@ -13,11 +30,11 @@ const pluginsList = {
     'eth-blocks',
     'explorer',
     'coin-balance',
-    'wallet',
+    'eth-wallet',
     'tokens',
     'metronome'
   ],
-  qtum: ['rates', 'qtum', 'qtuminfo-explorer', 'coin-balance']
+  qtum: ['rates', 'qtum', 'qtuminfo-explorer', 'coin-balance', 'qtum-wallet']
 }
 
 /**
@@ -28,7 +45,7 @@ const pluginsList = {
 function createCore () {
   let eventBus
   let initialized = false
-  let plugins
+  let corePlugins
 
   /**
    * Start the wallet core instance.
@@ -63,11 +80,11 @@ function createCore () {
 
     debug('Initializing plugins for %s', config.chainType)
 
-    plugins = pluginsList[config.chainType]
-      .map(name => require(`./plugins/${name}`))
+    corePlugins = pluginsList[config.chainType]
+      .map(name => plugins[name])
       .map(create => create())
 
-    plugins.forEach(function (plugin) {
+    corePlugins.forEach(function (plugin) {
       const params = { config, eventBus, plugins: pluginsApi }
       const { api, events, name } = plugin.start(params)
 
@@ -101,11 +118,11 @@ function createCore () {
       throw new Error('Wallet Core not initialized')
     }
 
-    plugins.reverse().forEach(function (plugin) {
+    corePlugins.reverse().forEach(function (plugin) {
       plugin.stop()
     })
 
-    plugins = null
+    corePlugins = null
 
     eventBus.removeAllListeners()
     eventBus = null

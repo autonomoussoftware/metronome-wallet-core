@@ -25,7 +25,7 @@
     "precommit": "npm run lint",
     "prepare": "patch-package",
     "prepublishOnly": "npm run precommit && npm run prepush && tag-matches",
-    "prepush": "npm test",
+    "prepush": "npm run check && npm test",
     "test": "mocha",
     "test:e2e": "E2E=true mocha --exit test/e2e.spec.js"
   },
@@ -34,6 +34,7 @@
     "axios-cookiejar-support": "^0.4.2",
     "debug": "^4.1.1",
     "ethereumjs-wallet": "^0.6.3",
+    "hdkey": "^1.1.1",
     "lodash": "^4.17.15",
     "merkletreejs": "0.0.25",
     "metronome-contracts": "^2.5.0",
@@ -43,12 +44,15 @@
     "p-retry": "^3.0.1",
     "patch-package": "^5.1.1",
     "promise-all-props": "^1.0.1",
+    "qtumjs": "^1.9.3",
+    "qtumjs-wallet": "^0.2.1",
     "safe-exchange-rate": "^1.1.0",
     "socket.io-client": "2.1.1",
     "tough-cookie": "^2.5.0",
     "web3": "1.2.1",
     "web3-utils": "1.2.1",
-    "websocket-reconnector": "^1.1.1"
+    "websocket-reconnector": "^1.1.1",
+    "wif": "^2.0.6"
   },
   "devDependencies": {
     "@types/chai": "^4.2.3",

@@ -1,6 +1,6 @@
 'use strict'
 
-const debug = require('debug')('metronome-wallet:core:wallet')
+const debug = require('debug')('metronome-wallet:core:eth-wallet')
 const Web3 = require('web3')
 
 const api = require('./api')
