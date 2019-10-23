@@ -1,12 +1,10 @@
 'use strict'
 
+const { toChecksumAddress } = require('web3-utils')
 const MetronomeContracts = require('metronome-contracts')
 const Web3 = require('web3')
 
-const {
-  buyMet,
-  estimateAuctionGas
-} = require('./auction-api')
+const { buyMet, estimateAuctionGas } = require('./auction-api')
 const {
   convertCoin,
   convertMet,
@@ -15,10 +13,7 @@ const {
   getCoinToMetEstimate,
   getMetToMetEstimate
 } = require('./converter-api')
-const {
-  getExportMetFee,
-  getMerkleRoot
-} = require('./porter-api')
+const { getExportMetFee, getMerkleRoot } = require('./porter-api')
 const {
   estimateExportMetGas,
   estimateImportMetGas,
@@ -57,7 +52,8 @@ function createPlugin () {
     const web3 = new Web3(eth.web3Provider)
 
     // Register MET token
-    tokens.registerToken(MetronomeContracts[chainId].METToken.address, {
+    const contractAddress = MetronomeContracts[chainId].METToken.address
+    tokens.registerToken(toChecksumAddress(contractAddress), {
       decimals: 18,
       name: 'Metronome',
       symbol: 'MET'
@@ -75,30 +71,25 @@ function createPlugin () {
     // Start emitting MET status
     const emitMetronomeStatus = () =>
       Promise.all([
-        getAuctionStatus(web3, chainId)
-          .then(function (status) {
-            eventBus.emit('auction-status-updated', status)
-          }),
-        getConverterStatus(web3, chainId)
-          .then(function (status) {
-            eventBus.emit('converter-status-updated', status)
-          }),
-        getAttestationThreshold(web3, chainId)
-          .then(function (status) {
-            eventBus.emit('attestation-threshold-updated', status)
-          }),
-        getChainHopStartTime(web3, chainId)
-          .then(function (status) {
-            eventBus.emit('chain-hop-start-time-updated', status)
-          })
-      ])
-        .catch(function (err) {
-          eventBus.emit('wallet-error', {
-            inner: err,
-            message: 'Metronome status could not be retrieved',
-            meta: { plugin: 'metronome' }
-          })
+        getAuctionStatus(web3, chainId).then(function (status) {
+          eventBus.emit('auction-status-updated', status)
+        }),
+        getConverterStatus(web3, chainId).then(function (status) {
+          eventBus.emit('converter-status-updated', status)
+        }),
+        getAttestationThreshold(web3, chainId).then(function (status) {
+          eventBus.emit('attestation-threshold-updated', status)
+        }),
+        getChainHopStartTime(web3, chainId).then(function (status) {
+          eventBus.emit('chain-hop-start-time-updated', status)
         })
+      ]).catch(function (err) {
+        eventBus.emit('wallet-error', {
+          inner: err,
+          message: 'Metronome status could not be retrieved',
+          meta: { plugin: 'metronome' }
+        })
+      })
 
     emitMetronomeStatus()
 
@@ -117,11 +108,10 @@ function createPlugin () {
     )
 
     // Define gas over-estimation wrapper
-    const over = fn =>
-      (...args) =>
-        fn(...args).then(gas =>
-          ({ gasLimit: Math.round(gas * gasOverestimation) })
-        )
+    const over = fn => (...args) =>
+      fn(...args).then(gas => ({
+        gasLimit: Math.round(gas * gasOverestimation)
+      }))
 
     // Build and return API
     return {
@@ -165,12 +155,7 @@ function createPlugin () {
           explorer.logTransaction,
           metaParsers
         ),
-        sendMet: sendMet(
-          web3,
-          chainId,
-          explorer.logTransaction,
-          metaParsers
-        )
+        sendMet: sendMet(web3, chainId, explorer.logTransaction, metaParsers)
       },
       events: [
         'attestation-threshold-updated',
