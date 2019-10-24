@@ -58,7 +58,10 @@ function createPlugin () {
 
     return {
       api: {
-        getBalance: address => httpApi.getAddressBalance(address)
+        getBalance: address =>
+          httpApi
+            .getAddressBalance(address)
+            .then(balance => `${balance}0000000000`)
       },
       events: [
         'coin-block',
