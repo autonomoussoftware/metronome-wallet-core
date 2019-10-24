@@ -48,6 +48,7 @@ function createPlugin () {
         eventBus.emit('explorer-connection-status-changed', { connected, data })
     }
 
+    // Subscribe to new blocks
     socket = startSocketIoConnection(config, httpApi, emit)
 
     // Emit the current block
@@ -58,10 +59,9 @@ function createPlugin () {
 
     return {
       api: {
-        getBalance: address =>
-          httpApi
-            .getAddressBalance(address)
-            .then(balance => `${balance}0000000000`)
+        getBalance: address => httpApi.getAddressBalance(address),
+        // TODO
+        registerEvent: () => undefined
       },
       events: [
         'coin-block',

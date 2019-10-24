@@ -34,7 +34,15 @@ const pluginsList = {
     'tokens',
     'metronome'
   ],
-  qtum: ['rates', 'qtum', 'qtuminfo-explorer', 'coin-balance', 'qtum-wallet']
+  qtum: [
+    'rates',
+    'qtum',
+    'qtuminfo-explorer',
+    'coin-balance',
+    'qtum-wallet',
+    'tokens',
+    'metronome'
+  ]
 }
 
 /**

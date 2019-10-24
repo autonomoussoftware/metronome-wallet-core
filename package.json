@@ -39,6 +39,7 @@
     "mem": "^5.1.1",
     "merkletreejs": "0.0.25",
     "metronome-contracts": "^2.5.0",
+    "metronome-sdk": "bloqpriv/metronome-sdk",
     "metronome-sdk-status": "^1.2.0",
     "p-all": "^2.1.0",
     "p-defer": "^1.0.0",

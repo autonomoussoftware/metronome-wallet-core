@@ -38,7 +38,8 @@ function createPlugin () {
    * @returns {CorePluginInterface} The plugin API.
    */
   function start ({ eventBus, plugins }) {
-    const api = createTokenApi(plugins.eth.web3Provider)
+    // TODO !!!!!
+    const api = plugins.eth ? createTokenApi(plugins.eth.web3Provider) : {}
 
     const emit = {
       balances (address) {
