@@ -39,7 +39,11 @@ function createPlugin () {
    */
   function start ({ eventBus, plugins }) {
     // TODO !!!!!
-    const api = plugins.eth ? createTokenApi(plugins.eth.web3Provider) : {}
+    const api = plugins.eth
+      ? createTokenApi(plugins.eth.web3Provider)
+      : {
+        balanceOf: () => Promise.resolve('0')
+      }
 
     const emit = {
       balances (address) {
