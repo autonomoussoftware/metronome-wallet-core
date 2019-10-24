@@ -59,7 +59,8 @@ function createPlugin () {
 
     return {
       api: {
-        getBalance: address => httpApi.getAddressBalance(address),
+        getBalance: httpApi.getAddressBalance,
+        getTokenBalance: httpApi.getAddressQrc20Balance,
         // TODO
         registerEvent: () => undefined
       },

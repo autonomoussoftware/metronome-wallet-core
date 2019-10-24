@@ -34,12 +34,21 @@ function createHttpApi (config) {
 
   const getAddressBalance = address =>
     axios(`/api/address/${address}/balance`).then(res => res.data.toString())
+  const getAddressQrc20Balance = (contractAddress, address) =>
+    axios(`/api/address/${address}`)
+      .then(res =>
+        res.data.qrc20Balances.find(
+          balance => balance.addressHex === contractAddress
+        )
+      )
+      .then(balance => (balance ? balance.balance : '0'))
   const getBlock = hashOrNumber =>
     axios(`/api/block/${hashOrNumber}`).then(res => res.data)
   const getInfo = () => axios('/api/info').then(res => res.data)
 
   return {
     getAddressBalance,
+    getAddressQrc20Balance,
     getBlock,
     getCookie,
     getInfo

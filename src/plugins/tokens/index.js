@@ -42,7 +42,7 @@ function createPlugin () {
     const api = plugins.eth
       ? createTokenApi(plugins.eth.web3Provider)
       : {
-        balanceOf: () => Promise.resolve('0')
+        balanceOf: plugins.explorer.getTokenBalance
       }
 
     const emit = {

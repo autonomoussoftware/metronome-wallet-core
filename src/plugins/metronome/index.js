@@ -1,7 +1,6 @@
 'use strict'
 
 const { createMetronome, createProvider } = require('metronome-sdk')
-const { toChecksumAddress } = require('web3-utils')
 // const MetronomeContracts = require('metronome-contracts')
 
 // const { buyMet, estimateAuctionGas } = require('./auction-api')
@@ -63,15 +62,15 @@ function createPlugin () {
     metProvider
       .getContracts()
       .then(function ({ METToken }) {
-        tokens.registerToken(toChecksumAddress(METToken.options.address), {
+        tokens.registerToken(METToken.options.address, {
           decimals: 18,
           name: 'Metronome',
           symbol: 'MET'
         })
       })
       .catch(function (err) {
-        // TODO
-        console.log(err)
+        // TODO emit wallet error
+        console.log('Could not register token', err)
       })
 
     // Register all MET events
