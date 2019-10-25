@@ -13,14 +13,15 @@ const plugins = {
   erc20: require('./plugins/erc20'),
   eth: require('./plugins/eth'),
   'eth-blocks': require('./plugins/eth-blocks'),
+  'eth-tokens': require('./plugins/eth-tokens'),
   'eth-wallet': require('./plugins/eth-wallet'),
   explorer: require('./plugins/explorer'),
   metronome: require('./plugins/metronome'),
   qtum: require('./plugins/qtum'),
+  'qtum-tokens': require('./plugins/qtum-tokens'),
   'qtum-wallet': require('./plugins/qtum-wallet'),
   'qtuminfo-explorer': require('./plugins/qtuminfo-explorer'),
   rates: require('./plugins/rates'),
-  tokens: require('./plugins/tokens'),
   'tokens-balance': require('./plugins/tokens-balance')
 }
 /* eslint-enable quote-props */
@@ -34,7 +35,7 @@ const pluginsList = {
     'coin-balance',
     'eth-wallet',
     'erc20',
-    'tokens',
+    'eth-tokens',
     'tokens-balance',
     'metronome'
   ],
@@ -45,7 +46,7 @@ const pluginsList = {
     'coin-balance',
     'qtum-wallet',
     'erc20',
-    'tokens',
+    'qtum-tokens',
     'tokens-balance',
     'metronome'
   ]

@@ -2,8 +2,6 @@
 
 const debug = require('debug')('metronome-wallet:core:tokens')
 
-const createTokenApi = require('./api')
-
 /**
  * Create the plugin.
  *
@@ -19,17 +17,14 @@ function createPlugin () {
   function start ({ plugins }) {
     debug('Starting')
 
-    const { erc20, eth, explorer } = plugins
-
-    const api = plugins.eth
-      ? createTokenApi(eth.web3Provider, erc20.abi)
-      : {
-        getTokenBalance: explorer.getTokenBalance,
-        getTokensGasLimit: () => Promise.resolve('0') // TODO implement
-      }
+    const { explorer } = plugins
 
     return {
-      api,
+      api: {
+        getTokenBalance: explorer.getTokenBalance,
+        // TODO implement
+        getTokensGasLimit: () => Promise.reject(new Error('Not implemented'))
+      },
       name: 'tokens'
     }
   }
