@@ -29,7 +29,6 @@ function createPlugin () {
         createPrivateKey: hdkey.getPrivateKey,
         getAddressAndPrivateKey: hdkey.getAddressAndPrivateKey,
         getGasLimit: api.estimateGas(web3),
-        getGasPrice: api.getGasPrice(web3),
         sendCoin: api.sendSignedTransaction(
           web3,
           plugins.explorer.logTransaction

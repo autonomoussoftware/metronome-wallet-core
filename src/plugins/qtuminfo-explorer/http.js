@@ -45,13 +45,16 @@ function createHttpApi (config) {
   const getBlock = hashOrNumber =>
     axios(`/api/block/${hashOrNumber}`).then(res => res.data)
   const getInfo = () => axios('/api/info').then(res => res.data)
+  const getMinGasPrice = () =>
+    getInfo().then(info => info.dgpInfo.minGasPrice.toString())
 
   return {
     getAddressBalance,
     getAddressQrc20Balance,
     getBlock,
     getCookie,
-    getInfo
+    getInfo,
+    getMinGasPrice
   }
 }
 

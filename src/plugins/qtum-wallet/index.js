@@ -28,7 +28,6 @@ function createPlugin () {
         // createPrivateKey:
         // getAddressAndPrivateKey:
         // getGasLimit:
-        // getGasPrice:
         // sendCoin:
       },
       events: ['wallet-error', 'wallet-state-changed'],

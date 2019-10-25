@@ -29,7 +29,9 @@ function createPlugin () {
   function start ({ config, eventBus, plugins }) {
     debug('Starting')
 
-    const web3 = new Web3(plugins.eth.web3Provider)
+    const { eth } = plugins
+
+    const web3 = new Web3(eth.web3Provider)
 
     const eventsRegistry = createEventsRegistry()
     const queue = createQueue(config, eventBus, web3)
@@ -47,7 +49,8 @@ function createPlugin () {
 
     return {
       api: {
-        getBalance: address => web3.eth.getBalance(address),
+        getBalance: eth.getBalance,
+        getGasPrice: eth.getGasPrice,
         logTransaction: createLogTransaction(queue),
         refreshAllTransactions: syncer.refreshAllTransactions,
         refreshTransaction: refreshTransaction(web3, eventsRegistry, queue),

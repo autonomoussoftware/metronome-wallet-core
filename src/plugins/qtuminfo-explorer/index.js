@@ -60,6 +60,7 @@ function createPlugin () {
     return {
       api: {
         getBalance: httpApi.getAddressBalance,
+        getGasPrice: httpApi.getMinGasPrice,
         getTokenBalance: httpApi.getAddressQrc20Balance,
         // TODO
         registerEvent: () => undefined
