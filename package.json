@@ -19,7 +19,7 @@
   "repository": "autonomoussoftware/metronome-wallet-core",
   "scripts": {
     "check:outdated": "npm-check -i eslint-config-plugin* -i husky",
-    "check": "dependency-check . --no-dev --ignore-module patch-package --ignore-module websocket-reconnector",
+    "check": "dependency-check . utils.js --no-dev --ignore-module patch-package --ignore-module websocket-reconnector",
     "coverage": "nyc --lines 95 --functions 95 --branches 95 --reporter=lcov --reporter=text npm test",
     "lint": "eslint --cache .",
     "precommit": "npm run lint",
@@ -32,6 +32,7 @@
   "dependencies": {
     "axios": "0.18.1",
     "axios-cookiejar-support": "^0.4.2",
+    "bignumber.js": "^9.0.0",
     "debug": "^4.1.1",
     "ethereumjs-wallet": "^0.6.3",
     "hdkey": "^1.1.1",
