@@ -46,7 +46,7 @@ function createPlugin () {
    */
   function start ({ config, eventBus, plugins }) {
     const { chainType } = config
-    const { eth, qtum, tokens } = plugins
+    const { eth, qtum, tokensBalance } = plugins
     // const { chainId, chainType, gasOverestimation } = config
     // const { eth, explorer, qtum, tokens } = plugins
 
@@ -62,7 +62,7 @@ function createPlugin () {
     metProvider
       .getContracts()
       .then(function ({ METToken }) {
-        tokens.registerToken(METToken.options.address, {
+        tokensBalance.registerToken(METToken.options.address, {
           decimals: 18,
           name: 'Metronome',
           symbol: 'MET'

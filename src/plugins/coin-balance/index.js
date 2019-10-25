@@ -1,6 +1,6 @@
 'use strict'
 
-const debug = require('debug')('metronome-wallet:core:coin')
+const debug = require('debug')('metronome-wallet:core:coin-balance')
 
 /**
  * Create the plugin.

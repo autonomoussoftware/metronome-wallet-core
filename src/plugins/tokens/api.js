@@ -1,6 +1,5 @@
 'use strict'
 
-const abi = require('./erc20-abi.json')
 const mem = require('mem')
 const Web3 = require('web3')
 
@@ -8,29 +7,30 @@ const Web3 = require('web3')
  * Create ERC20 token helper methods.
  *
  * @param {object} web3Provider A Web3 provider.
+ * @param {object[]} abi The ERC20 ABI.
  * @returns {object} The token methods.
  */
-function createTokenApi (web3Provider) {
+function createTokenApi (web3Provider, abi) {
   const web3 = new Web3(web3Provider)
 
   const createContract = mem(
     contractAddress => new web3.eth.Contract(abi, contractAddress)
   )
 
-  const balanceOf = (contractAddress, address) =>
+  const getTokenBalance = (contractAddress, address) =>
     createContract(contractAddress)
-      .methods.balanceOf(address)
+      .methods.getTokenBalance(address)
       .call()
 
-  const estimateTransferGas = ({ token: contractAddress, to, from, value }) =>
+  const getTokensGasLimit = ({ token: contractAddress, to, from, value }) =>
     createContract(contractAddress)
       .methods.transfer(to, value)
       .estimateGas({ from })
       .then(gasLimit => ({ gasLimit }))
 
   return {
-    balanceOf,
-    estimateTransferGas
+    getTokenBalance,
+    getTokensGasLimit
   }
 }
 

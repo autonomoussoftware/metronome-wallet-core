@@ -1,6 +1,6 @@
 'use strict'
 
-const abi = require('./erc20-abi.json')
+const abi = require('./abi.json')
 
 const transferMetaParser = ({ address, returnValues }) => ({
   tokens: {

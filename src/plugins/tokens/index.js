@@ -3,7 +3,6 @@
 const debug = require('debug')('metronome-wallet:core:tokens')
 
 const createTokenApi = require('./api')
-const events = require('./events')
 
 /**
  * Create the plugin.
@@ -11,96 +10,26 @@ const events = require('./events')
  * @returns {CorePlugin} The plugin.
  */
 function createPlugin () {
-  const tokens = []
-
-  const registerToken = explorer =>
-    function (contractAddress, meta) {
-      debug('Registering token', contractAddress, meta)
-
-      if (tokens.find(t => t.address === contractAddress)) {
-        return
-      }
-
-      tokens.push({ contractAddress, meta })
-
-      events
-        .getEventDataCreators(contractAddress)
-        .forEach(explorer.registerEvent)
-    }
-
-  let accountAddress
-  let walletId
-
   /**
    * Start the plugin.
    *
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ eventBus, plugins }) {
-    // TODO !!!!!
+  function start ({ plugins }) {
+    debug('Starting')
+
+    const { erc20, eth, explorer } = plugins
+
     const api = plugins.eth
-      ? createTokenApi(plugins.eth.web3Provider)
+      ? createTokenApi(eth.web3Provider, erc20.abi)
       : {
-        balanceOf: plugins.explorer.getTokenBalance
+        getTokenBalance: explorer.getTokenBalance,
+        getTokensGasLimit: () => Promise.resolve('0') // TODO implement
       }
-
-    const emit = {
-      balances (address) {
-        tokens.forEach(function ({ contractAddress, meta: { symbol } }) {
-          api
-            .balanceOf(contractAddress, address)
-            .then(function (balance) {
-              eventBus.emit('wallet-state-changed', {
-                [walletId]: {
-                  addresses: {
-                    [address]: {
-                      token: {
-                        [contractAddress]: {
-                          symbol,
-                          balance
-                        }
-                      }
-                    }
-                  }
-                }
-              })
-            })
-            .catch(emit.walletError(symbol))
-        })
-      },
-
-      walletError: symbol =>
-        function (err) {
-          eventBus.emit('wallet-error', {
-            inner: err,
-            message: `Could not get ${symbol} token balance`,
-            meta: { plugin: 'tokens' }
-          })
-        }
-    }
-
-    eventBus.on('open-wallets', function ({ address, activeWallet }) {
-      accountAddress = address
-      walletId = activeWallet
-      emit.balances(address)
-    })
-    eventBus.on('coin-tx', function () {
-      if (accountAddress && walletId) {
-        emit.balances(accountAddress)
-      }
-    })
 
     return {
-      api: {
-        getTokensGasLimit: api.estimateTransferGas,
-        registerToken: registerToken(plugins.explorer),
-        metaParsers: {
-          approval: events.approvalMetaParser,
-          transfer: events.transferMetaParser
-        }
-      },
-      events: ['wallet-state-changed', 'wallet-error'],
+      api,
       name: 'tokens'
     }
   }
@@ -108,9 +37,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {
-    accountAddress = null
-  }
+  function stop () {}
 
   return { start, stop }
 }
