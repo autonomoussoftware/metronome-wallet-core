@@ -13,7 +13,7 @@
  * @typedef CoreOptions
  * @property {CoreConfig} config
  * @property {object} [eventBus]
- * @property {object} plugins
+ * @property {object} [plugins]
  *
  * @typedef CoreInterface
  * @property {object} api
