@@ -16,7 +16,7 @@ const MockProvider = require('./utils/mock-provider')
 const {
   getEventDataCreator
 } = require('../src/plugins/metronome/auction-events')
-const { getEventDataCreators } = require('../src/plugins/tokens/events')
+const { getEventDataCreators } = require('../src/plugins/erc20/events')
 
 const explorer = proxyquire('../src/plugins/explorer', {
   './indexer': () => ({
