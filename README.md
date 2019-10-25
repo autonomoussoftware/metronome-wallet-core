@@ -21,6 +21,12 @@ const { api, emitter, events } = core.start()
 core.stop()
 ```
 
+## Migrating from 2.x to 3.x
+
+This is a summary of the breaking changes in 3.x:
+
+- getGasPrice moved to the explorer plugin.
+
 ## API
 
 - `createCore()`: Creates a wallet core instance.
@@ -38,13 +44,13 @@ The configuration object has default properties as defined in `src/defaultConfig
 All plugins must follow this pattern:
 
 ```js
-function createPlugin () {
+function createPlugin() {
   return {
-    start ({ config, eventBus, plugins }) {
+    start({ config, eventBus, plugins }) {
       // Initialize
       return { events, name, api }
     },
-    stop () {
+    stop() {
       // Clean up
     }
   }
