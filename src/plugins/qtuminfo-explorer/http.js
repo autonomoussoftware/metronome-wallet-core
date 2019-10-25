@@ -46,7 +46,7 @@ function createHttpApi (config) {
     axios(`/api/block/${hashOrNumber}`).then(res => res.data)
   const getInfo = () => axios('/api/info').then(res => res.data)
   const getMinGasPrice = () =>
-    getInfo().then(info => info.dgpInfo.minGasPrice.toString())
+    getInfo().then(info => ({ gasPrice: info.dgpInfo.minGasPrice.toString() }))
 
   return {
     getAddressBalance,
