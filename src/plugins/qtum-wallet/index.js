@@ -29,13 +29,19 @@ function createPlugin () {
         createPrivateKey: wallet.getPrivateKey,
         // getAddressAndPrivateKey:
         // getGasLimit:
-        sendCoin (privateKey, { /* from, */ to, value, feeRate = 450 }) {
+        // The min relay fee is set to 90400. For a 225 bytes tx, the fee rate
+        // shall be >= 402 satoshis/byte.
+        sendCoin (privateKey, { /* from, */ to, value, feeRate = 402 }) {
           debug('Sending Coin', to, value, feeRate)
           return walletRPCProvider
             .fromPrivateKey(privateKey)
             .wallet.send(to, Number.parseInt(value), { feeRate })
             .then(function (tx) {
-              debug('Transaction sent', tx.txid)
+              debug('Transaction sent', tx)
+              if (tx.status) {
+                throw new Error(tx.message)
+              }
+              return { hash: tx.txid }
               // TODO receipt, plugins.explorer.logTransaction(promiEvent, from)
             })
         }
