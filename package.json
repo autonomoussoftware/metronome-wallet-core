@@ -12,8 +12,10 @@
   "license": "MIT",
   "author": "Gabriel Montes <gabriel@bloq.com>",
   "files": [
+    "contracts.js",
     "patches",
-    "src"
+    "src",
+    "utils.js"
   ],
   "main": "src/index.js",
   "repository": "autonomoussoftware/metronome-wallet-core",
