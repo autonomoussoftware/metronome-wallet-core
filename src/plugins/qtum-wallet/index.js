@@ -2,7 +2,7 @@
 
 const debug = require('debug')('metronome-wallet:core:qtum-wallet')
 
-const createWalletRPCProvider = require('./wallet')
+const wallet = require('./wallet')
 
 /**
  * Create the plugin.
@@ -21,14 +21,24 @@ function createPlugin () {
 
     const { chainId } = config
 
+    const walletRPCProvider = wallet.forChain(chainId)
+
     return {
       api: {
-        createAddress: seed =>
-          createWalletRPCProvider(chainId, seed).wallet.address
-        // createPrivateKey:
+        createAddress: seed => walletRPCProvider.fromSeed(seed).wallet.address,
+        createPrivateKey: wallet.getPrivateKey,
         // getAddressAndPrivateKey:
         // getGasLimit:
-        // sendCoin:
+        sendCoin (privateKey, { /* from, */ to, value, feeRate = 450 }) {
+          debug('Sending Coin', to, value, feeRate)
+          return walletRPCProvider
+            .fromPrivateKey(privateKey)
+            .wallet.send(to, Number.parseInt(value), { feeRate })
+            .then(function (tx) {
+              debug('Transaction sent', tx.txid)
+              // TODO receipt, plugins.explorer.logTransaction(promiEvent, from)
+            })
+        }
       },
       events: ['wallet-error', 'wallet-state-changed'],
       name: 'wallet'
