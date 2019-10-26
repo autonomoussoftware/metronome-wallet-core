@@ -1,6 +1,5 @@
 'use strict'
 
-const { Address, Networks } = require('qtumcore-lib')
 const {
   checkAddressChecksum,
   fromWei,
@@ -9,6 +8,7 @@ const {
   toWei
 } = require('web3-utils')
 const { constant, identity } = require('lodash')
+const { validate } = require('wallet-address-validator')
 const BigNumber = require('bignumber.js').default
 
 BigNumber.config({ DECIMAL_PLACES: 18 })
@@ -31,7 +31,7 @@ const qtumUtils = network => ({
   checkAddressChecksum: constant(true),
   fromCoin: mul8s,
   fromMet: mul18s,
-  isAddress: address => Address.isValid(address, Networks[network]),
+  isAddress: address => validate(address, 'QTUM', network),
   toCoin: div8s,
   toChecksumAddress: identity,
   toMet: div18s
