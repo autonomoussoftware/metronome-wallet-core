@@ -41,6 +41,7 @@
     "lodash": "^4.17.15",
     "mem": "^5.1.1",
     "metronome-sdk": "bloqpriv/metronome-sdk",
+    "metronome-sdk-status": "^1.2.0",
     "p-all": "^2.1.0",
     "p-defer": "^1.0.0",
     "p-retry": "^3.0.1",
@@ -53,6 +54,7 @@
     "tough-cookie": "^2.5.0",
     "wallet-address-validator": "^0.2.4",
     "web3": "1.2.1",
+    "web3-core-promievent": "^1.2.2",
     "web3-utils": "1.2.1",
     "websocket-reconnector": "^1.1.1",
     "wif": "^2.0.6"
@@ -67,6 +69,7 @@
     "dotenv": "^8.2.0",
     "eslint": "^6.5.1",
     "eslint-config-bloq": "^2.2.0",
+    "eslint-config-prettier": "^6.5.0",
     "eslint-config-standard": "^14.1.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-jsdoc": "^15.12.0",
