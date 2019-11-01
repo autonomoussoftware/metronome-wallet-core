@@ -6,13 +6,13 @@ const getTransactionStatus = require('./transaction-status')
 const pDefer = require('p-defer')
 const promiseAllProps = require('promise-all-props')
 
-function createQueue (config, eventBus, web3) {
+function createQueue(config, eventBus, web3) {
   const metasCache = {}
 
   let pendingEvents = []
   let walletId
 
-  function mergeEvents (hash, events) {
+  function mergeEvents(hash, events) {
     const metas = events.map(({ event, metaParser }) => metaParser(event))
 
     metas.unshift(metasCache[hash] || {})
@@ -24,14 +24,14 @@ function createQueue (config, eventBus, web3) {
 
   const mergeDones = events => events.map(event => event.done || noop)
 
-  function fillInStatus ({ transaction, receipt, meta }) {
+  function fillInStatus({ transaction, receipt, meta }) {
     if (receipt && meta) {
       meta.contractCallFailed = !getTransactionStatus(transaction, receipt)
     }
     return { transaction, receipt, meta }
   }
 
-  function emitTransactions (address, transactions) {
+  function emitTransactions(address, transactions) {
     if (!walletId) {
       throw new Error('Wallet ID not set')
     }
@@ -50,7 +50,7 @@ function createQueue (config, eventBus, web3) {
     eventBus.emit('coin-tx')
   }
 
-  function tryEmitTransactions (address, transactions) {
+  function tryEmitTransactions(address, transactions) {
     try {
       emitTransactions(address, transactions)
       return null
@@ -59,36 +59,40 @@ function createQueue (config, eventBus, web3) {
     }
   }
 
-  function emitPendingEvents (address) {
+  function emitPendingEvents(address) {
     debug('About to emit pending events')
 
     const eventsToEmit = pendingEvents.filter(e => e.address === address)
     const eventsToKeep = pendingEvents.filter(e => e.address !== address)
     pendingEvents = eventsToKeep
 
-    const grouped = (groupBy(eventsToEmit, 'event.transactionHash'))
+    const grouped = groupBy(eventsToEmit, 'event.transactionHash')
 
-    Promise.all(Object.keys(grouped).map(hash => promiseAllProps({
-      transaction: web3.eth.getTransaction(hash),
-      receipt: web3.eth.getTransactionReceipt(hash),
-      meta: mergeEvents(hash, grouped[hash]),
-      done: mergeDones(grouped[hash])
-    })))
-      .then(function (transactions) {
+    Promise.all(
+      Object.keys(grouped).map(hash =>
+        promiseAllProps({
+          transaction: web3.eth.getTransaction(hash),
+          receipt: web3.eth.getTransactionReceipt(hash),
+          meta: mergeEvents(hash, grouped[hash]),
+          done: mergeDones(grouped[hash])
+        })
+      )
+    )
+      .then(function(transactions) {
         const err = tryEmitTransactions(address, transactions)
-        return Promise.all(transactions.map(transaction =>
-          Promise.all(transaction.done.map(done =>
-            done(err)
-          ))
-        ))
+        return Promise.all(
+          transactions.map(transaction =>
+            Promise.all(transaction.done.map(done => done(err)))
+          )
+        )
       })
-      .catch(function (err) {
+      .catch(function(err) {
         eventBus.emit('wallet-error', {
           inner: err,
           message: 'Could not emit event transaction',
           meta: { plugin: 'explorer' }
         })
-        eventsToEmit.forEach(function (event) {
+        eventsToEmit.forEach(function(event) {
           event.done(err)
         })
       })
@@ -100,7 +104,7 @@ function createQueue (config, eventBus, web3) {
   )
 
   const addTransaction = (address, meta) =>
-    function (hash) {
+    function(hash) {
       debug('Queueing transaction', hash)
 
       const deferred = pDefer()
@@ -108,32 +112,38 @@ function createQueue (config, eventBus, web3) {
       const event = {
         address,
         event: { transactionHash: hash },
-        metaParser: () => (meta || {}),
-        done: err => err ? deferred.reject(err) : deferred.resolve()
+        metaParser: () => meta || {},
+        done: err => (err ? deferred.reject(err) : deferred.resolve())
       }
       pendingEvents.push(event)
 
       debouncedEmitPendingEvents(address)
 
-      return deferred.promise
+      const promise = deferred.promise
+      promise.catch(function(err) {
+        debug('Some queued transactions failed: %s', err.message)
+      })
+
+      return { promise }
     }
 
-  eventBus.on('open-wallets', function ({ activeWallet }) {
+  eventBus.on('open-wallets', function({ activeWallet }) {
     walletId = activeWallet
   })
 
-  const addEvent = (address, metaParser) => function (event) {
-    debug('Queueing event', event.event)
-    const deferred = pDefer()
-    pendingEvents.push({
-      address,
-      event,
-      metaParser,
-      done: err => err ? deferred.reject(err) : deferred.resolve()
-    })
-    debouncedEmitPendingEvents(address)
-    return deferred.promise
-  }
+  const addEvent = (address, metaParser) =>
+    function(event) {
+      debug('Queueing event', event.event)
+      const deferred = pDefer()
+      pendingEvents.push({
+        address,
+        event,
+        metaParser,
+        done: err => (err ? deferred.reject(err) : deferred.resolve())
+      })
+      debouncedEmitPendingEvents(address)
+      return deferred.promise
+    }
 
   return {
     addEvent,

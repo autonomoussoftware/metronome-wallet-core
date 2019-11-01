@@ -6,7 +6,7 @@ const { toChecksumAddress } = require('web3-utils')
 const createTryParseEventLog = require('./parse-log')
 
 const refreshTransaction = (web3, eventsRegistry, queue) => (hash, address) =>
-  web3.eth.getTransactionReceipt(hash).then(function (receipt) {
+  web3.eth.getTransactionReceipt(hash).then(function(receipt) {
     const pending = []
 
     // Skip unconfirmed transactions
@@ -19,15 +19,15 @@ const refreshTransaction = (web3, eventsRegistry, queue) => (hash, address) =>
       toChecksumAddress(receipt.from) === address ||
       toChecksumAddress(receipt.to) === address
     ) {
-      pending.push(queue.addTransaction(address)(hash))
+      pending.push(queue.addTransaction(address)(hash).promise)
     }
 
     // Refresh transaction events
     if (receipt.logs && receipt.logs.length) {
       const tryParseEventLog = createTryParseEventLog(web3, eventsRegistry)
 
-      receipt.logs.forEach(function (log) {
-        tryParseEventLog(log, address).forEach(function (parsedLog) {
+      receipt.logs.forEach(function(log) {
+        tryParseEventLog(log, address).forEach(function(parsedLog) {
           const {
             contractAddress,
             filter,
