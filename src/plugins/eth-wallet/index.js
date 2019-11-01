@@ -11,14 +11,14 @@ const hdkey = require('./hdkey')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   /**
    * Start the plugin.
    *
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ plugins }) {
+  function start({ plugins }) {
     debug('Starting')
 
     const web3 = new Web3(plugins.eth.web3Provider)
@@ -27,7 +27,6 @@ function createPlugin () {
       api: {
         createAddress: hdkey.getAddress,
         createPrivateKey: hdkey.getPrivateKey,
-        getAddressAndPrivateKey: hdkey.getAddressAndPrivateKey,
         getGasLimit: api.estimateGas(web3),
         sendCoin: api.sendSignedTransaction(
           web3,
@@ -42,7 +41,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {}
+  function stop() {}
 
   return {
     start,
