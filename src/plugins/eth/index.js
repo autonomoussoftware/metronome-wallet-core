@@ -19,6 +19,8 @@ function createPlugin () {
    * @returns {CorePluginInterface} The plugin API.
    */
   function start ({ config, eventBus }) {
+    debug('Starting')
+
     web3 = createWeb3(config, eventBus)
 
     checkChain(web3, config.chainId)
@@ -35,7 +37,7 @@ function createPlugin () {
 
     return {
       api: {
-        getBalanbce: address => web3.eth.getBalance(address),
+        getBalance: address => web3.eth.getBalance(address),
         getGasPrice: () =>
           web3.eth.getGasPrice().then(gasPrice => ({ gasPrice })),
         web3,
