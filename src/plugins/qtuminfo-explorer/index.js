@@ -10,7 +10,7 @@ const startSocketIoConnection = require('./socket.io')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   let socket
 
   /**
@@ -19,14 +19,14 @@ function createPlugin () {
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ config, eventBus }) {
+  function start({ config, eventBus }) {
     debug('Starting')
 
     const httpApi = createHttpApi(config)
 
     const emit = {
       walletError: message =>
-        function (err) {
+        function(err) {
           debug('Wallet error: %s', err.message)
           eventBus.emit('wallet-error', {
             inner: err,
@@ -38,7 +38,7 @@ function createPlugin () {
       coinBlock: ({ height }) =>
         httpApi
           .getBlock(height)
-          .then(function ({ hash, timestamp }) {
+          .then(function({ hash, timestamp }) {
             debug('Best block', hash, height)
             eventBus.emit('coin-block', { hash, number: height, timestamp })
           })
@@ -62,8 +62,11 @@ function createPlugin () {
         getBalance: httpApi.getAddressBalance,
         getGasPrice: httpApi.getMinGasPrice,
         getTokenBalance: httpApi.getAddressQrc20Balance,
-        // TODO
-        registerEvent: () => undefined
+        getTransaction: httpApi.getTransaction,
+        getTransactionReceipt: httpApi.getTransactionReceipt,
+        getTransactionStream: () => new (require('events')).EventEmitter(), // TODO socket.getTransactionStream,
+        getTransactions: httpApi.getTransactions,
+        registerEvent: () => undefined // TODO
       },
       events: [
         'coin-block',
@@ -77,7 +80,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {
+  function stop() {
     debug('Stopping')
 
     if (socket) {
