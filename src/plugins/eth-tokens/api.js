@@ -10,7 +10,7 @@ const Web3 = require('web3')
  * @param {object[]} abi The ERC20 ABI.
  * @returns {object} The token methods.
  */
-function createTokenApi (web3Provider, abi) {
+function createTokenApi(web3Provider, abi) {
   const web3 = new Web3(web3Provider)
 
   const createContract = mem(
@@ -19,7 +19,7 @@ function createTokenApi (web3Provider, abi) {
 
   const getTokenBalance = (contractAddress, address) =>
     createContract(contractAddress)
-      .methods.getTokenBalance(address)
+      .methods.balanceOf(address)
       .call()
 
   const getTokensGasLimit = ({ token: contractAddress, to, from, value }) =>
