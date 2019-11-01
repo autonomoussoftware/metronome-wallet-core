@@ -22,7 +22,9 @@ const plugins = {
   'qtum-wallet': require('./plugins/qtum-wallet'),
   'qtuminfo-explorer': require('./plugins/qtuminfo-explorer'),
   rates: require('./plugins/rates'),
-  'tokens-balance': require('./plugins/tokens-balance')
+  'tokens-balance': require('./plugins/tokens-balance'),
+  'transactions-list': require('./plugins/transactions-list'),
+  'transactions-syncer': require('./plugins/transactions-syncer')
 }
 /* eslint-enable quote-props */
 
@@ -43,6 +45,8 @@ const pluginsList = {
     'rates',
     'qtum',
     'qtuminfo-explorer',
+    'transactions-list',
+    'transactions-syncer',
     'coin-balance',
     'qtum-wallet',
     'erc20',
@@ -57,7 +61,7 @@ const pluginsList = {
  *
  * @returns {CoreInstance} The wallet core instance.
  */
-function createCore () {
+function createCore() {
   let eventBus
   let initialized = false
   let corePlugins
@@ -68,7 +72,7 @@ function createCore () {
    * @param {CoreConfig} givenConfig The wallet core config.
    * @returns {CoreInterface} The code API.
    */
-  function start (givenConfig) {
+  function start(givenConfig) {
     if (initialized) {
       throw new Error('Wallet Core already initialized')
     }
@@ -84,7 +88,7 @@ function createCore () {
         process.env.DEBUG ? `${process.env.DEBUG},` : ''
       }metronome-wallet:core*`
       const emit = eventBus.emit.bind(eventBus)
-      eventBus.emit = function (eventName, ...args) {
+      eventBus.emit = function(eventName, ...args) {
         debug('<<-- %s', eventName, ...args)
         return emit(eventName, ...args)
       }
@@ -99,7 +103,7 @@ function createCore () {
       .map(name => plugins[name])
       .map(create => create())
 
-    corePlugins.forEach(function (plugin) {
+    corePlugins.forEach(function(plugin) {
       const params = { config, eventBus, plugins: pluginsApi }
       const { api, events, name } = plugin.start(params)
 
@@ -126,14 +130,14 @@ function createCore () {
   /**
    * Stop the wallet core instance.
    */
-  function stop () {
+  function stop() {
     debug('Stopping')
 
     if (!initialized) {
       throw new Error('Wallet Core not initialized')
     }
 
-    corePlugins.reverse().forEach(function (plugin) {
+    corePlugins.reverse().forEach(function(plugin) {
       plugin.stop()
     })
 
