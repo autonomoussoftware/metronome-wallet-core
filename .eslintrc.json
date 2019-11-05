@@ -1,7 +1,6 @@
 {
   "extends": [
-    "bloq",
-    "prettier"
+    "bloq"
   ],
   "root": true,
   "rules": {
