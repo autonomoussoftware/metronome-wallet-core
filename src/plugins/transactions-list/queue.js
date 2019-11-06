@@ -4,6 +4,7 @@ const { debounce, groupBy, merge, noop, reduce } = require('lodash')
 const debug = require('debug')('metronome-wallet:core:explorer:queue')
 const getTransactionStatus = require('./transaction-status')
 const pDefer = require('p-defer')
+const pRetry = require('p-retry')
 const promiseAllProps = require('promise-all-props')
 
 function createQueue(config, eventBus, plugins) {
@@ -63,6 +64,20 @@ function createQueue(config, eventBus, plugins) {
     }
   }
 
+  function retryExplorerCall(fn) {
+    return pRetry(fn, {
+      onFailedAttempt(err) {
+        // Retry only 404 errors
+        if (err.message.includes('404')) {
+          debug('Retrying explorer call that ended in 404')
+          return
+        }
+        debug('Explorer call failed with %s', err.message)
+        throw err
+      }
+    })
+  }
+
   function emitPendingEvents(address) {
     debug('About to emit pending events')
 
@@ -75,8 +90,12 @@ function createQueue(config, eventBus, plugins) {
     Promise.all(
       Object.keys(grouped).map(hash =>
         promiseAllProps({
-          transaction: plugins.explorer.getTransaction(hash, true),
-          receipt: plugins.explorer.getTransactionReceipt(hash, true),
+          transaction: retryExplorerCall(() =>
+            plugins.explorer.getTransaction(hash, true)
+          ),
+          receipt: retryExplorerCall(() =>
+            plugins.explorer.getTransactionReceipt(hash, true)
+          ),
           meta: mergeEvents(hash, grouped[hash]),
           done: mergeDones(grouped[hash])
         })
