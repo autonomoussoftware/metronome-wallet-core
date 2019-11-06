@@ -10,30 +10,35 @@ const checkChain = require('./check-chain')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   /**
    * Start the plugin.
    *
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ config, eventBus }) {
+  function start({ config, eventBus }) {
     debug('Starting plugin')
+
+    const emit = {
+      walletError: message =>
+        function(err) {
+          debug('Wallet error: %s', err.message)
+          eventBus.emit('wallet-error', {
+            inner: err,
+            message,
+            meta: { plugin: 'qtum' }
+          })
+        }
+    }
 
     const qtumRPC = new QtumRPC(config.nodeUrl)
 
     checkChain(qtumRPC, config.chainId)
-      .then(function () {
+      .then(function() {
         debug('Chain ID is correct')
       })
-      .catch(function (err) {
-        debug('Wallet error: %s', err.message)
-        eventBus.emit('wallet-error', {
-          inner: err,
-          message: 'Could not validate chain ID',
-          meta: { plugin: 'qtum' }
-        })
-      })
+      .catch(emit.walletError('Could not validate chain ID'))
 
     return {
       api: {
@@ -47,7 +52,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {}
+  function stop() {}
 
   return {
     start,

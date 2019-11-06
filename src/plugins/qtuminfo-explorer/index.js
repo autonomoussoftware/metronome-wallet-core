@@ -66,7 +66,7 @@ function createPlugin() {
         getTransactionReceipt: httpApi.getTransactionReceipt,
         getTransactionStream: () => new (require('events')).EventEmitter(), // TODO socket.getTransactionStream,
         getTransactions: httpApi.getTransactions,
-        registerEvent: () => undefined // TODO
+        registerEvent: () => undefined // TODO implement
       },
       events: [
         'coin-block',

@@ -1,6 +1,5 @@
 'use strict'
 
-// const debug = require('debug')
 const PromiEvent = require('web3-core-promievent')
 
 function emptyReceipt(tx) {
@@ -23,7 +22,6 @@ function pollForReceipt(qtumRPC, promiEvent, txid) {
         return qtumRPC
           .rawCall('gettransactionreceipt', [txid])
           .then(function([receipt]) {
-            console.log('********* receipt', receipt)
             clearInterval(id)
             promiEvent.eventEmitter.emit('receipt', receipt || emptyReceipt(tx))
             promiEvent.resolve(receipt)

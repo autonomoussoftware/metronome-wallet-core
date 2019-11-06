@@ -91,8 +91,8 @@ function createPlugin() {
         })
     }
 
-    const syncTransactions = (fromBlock, address) =>
-      gotBestBlockPromise
+    function syncTransactions(fromBlock, address) {
+      return gotBestBlockPromise
         .then(function(bestBlock) {
           debug('Syncing', fromBlock, bestBlock)
           subscribeCoinTransactions(bestBlock, address)
@@ -106,6 +106,7 @@ function createPlugin() {
           // bestBlock = syncedBlock
           return syncedBlock
         })
+    }
 
     eventBus.once('coin-block', function(header) {
       debug('Got best block', header.number)
@@ -115,6 +116,9 @@ function createPlugin() {
 
     return {
       api: {
+        getPastCoinTransactions,
+        // getPastEvents,
+        // refreshAllTransactions,
         syncTransactions
       },
       events: ['wallet-error'],

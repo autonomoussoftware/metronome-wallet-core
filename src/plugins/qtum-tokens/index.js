@@ -7,14 +7,14 @@ const debug = require('debug')('metronome-wallet:core:tokens')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   /**
    * Start the plugin.
    *
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ plugins }) {
+  function start({ plugins }) {
     debug('Starting')
 
     const { explorer } = plugins
@@ -32,7 +32,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {}
+  function stop() {}
 
   return { start, stop }
 }
