@@ -35,11 +35,13 @@ function addTests(fixtures) {
     api.should.be.an('object')
     events.should.be.an('array')
 
-    const end = once(done)
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
 
     function checkEnd() {
       if (blocksCount >= 2 && ratesCount >= 2) {
-        core.stop()
         end()
       }
     }
@@ -76,7 +78,10 @@ function addTests(fixtures) {
     const core = createCore()
     const { emitter } = core.start(config)
 
-    const end = once(done)
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
 
     emitter.on('error', function(err) {
       end(err)
@@ -114,7 +119,10 @@ function addTests(fixtures) {
     const value = (Math.random() * 1000).toFixed()
     let events = 0
 
-    const end = once(done)
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
 
     emitter.on('error', function(err) {
       end(err)
