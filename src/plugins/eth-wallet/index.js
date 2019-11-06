@@ -1,9 +1,8 @@
 'use strict'
 
 const debug = require('debug')('metronome-wallet:core:eth-wallet')
-const Web3 = require('web3')
 
-const api = require('./api')
+const createApi = require('./api')
 const hdkey = require('./hdkey')
 
 /**
@@ -21,19 +20,13 @@ function createPlugin() {
   function start({ plugins }) {
     debug('Starting')
 
-    const web3 = new Web3(plugins.eth.web3Provider)
+    const { eth, explorer } = plugins
 
     return {
       api: {
-        createAddress: hdkey.getAddress,
-        createPrivateKey: hdkey.getPrivateKey,
-        getGasLimit: api.estimateGas(web3),
-        sendCoin: api.sendSignedTransaction(
-          web3,
-          plugins.explorer.logTransaction
-        )
+        ...hdkey,
+        ...createApi(eth.web3, explorer.logTransaction)
       },
-      events: ['wallet-error', 'wallet-state-changed'],
       name: 'wallet'
     }
   }

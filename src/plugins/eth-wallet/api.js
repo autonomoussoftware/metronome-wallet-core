@@ -1,17 +1,18 @@
 'use strict'
 
-const estimateGas = web3 => ({ from, to, value }) =>
-  web3.eth.estimateGas({ from, to, value }).then(gasLimit => ({ gasLimit }))
+function createApi(web3, logTransaction) {
+  const getGasLimit = ({ from, to, value }) =>
+    web3.eth.estimateGas({ from, to, value }).then(gasLimit => ({ gasLimit }))
 
-function addAccount (web3, privateKey) {
-  web3.eth.accounts.wallet
-    .create(0)
-    .add(web3.eth.accounts.privateKeyToAccount(privateKey))
-}
+  function addAccount(privateKey) {
+    web3.eth.accounts.wallet
+      .create(0)
+      .add(web3.eth.accounts.privateKeyToAccount(privateKey))
+  }
 
-const sendSignedTransaction = (web3, logTransaction) =>
-  function (privateKey, { from, to, value, gas, gasPrice }) {
-    addAccount(web3, privateKey)
+  const sendCoin = function(privateKey, transactionOptions) {
+    const { from, to, value, gas, gasPrice } = transactionOptions
+    addAccount(privateKey)
     return web3.eth
       .getTransactionCount(from, 'pending')
       .then(nonce =>
@@ -22,7 +23,10 @@ const sendSignedTransaction = (web3, logTransaction) =>
       )
   }
 
-module.exports = {
-  estimateGas,
-  sendSignedTransaction
+  return {
+    getGasLimit,
+    sendCoin
+  }
 }
+
+module.exports = createApi

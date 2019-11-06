@@ -3,7 +3,7 @@
 const debug = require('debug')('metronome-wallet:core:eth:web3')
 const Web3 = require('web3')
 
-function createWeb3 (config, eventBus) {
+function createWeb3(config, emit) {
   const web3 = new Web3(
     new Web3.providers.WebsocketProvider(config.wsApiUrl, {
       autoReconnect: true,
@@ -11,23 +11,23 @@ function createWeb3 (config, eventBus) {
     })
   )
 
-  web3.currentProvider.on('connect', function () {
+  web3.currentProvider.on('connect', function() {
     debug('Web3 provider connected')
-    eventBus.emit('web3-connection-status-changed', { connected: true })
+    emit.connectionStatus(true)
   })
-  web3.currentProvider.on('error', function (event) {
+  web3.currentProvider.on('error', function(event) {
     debug('Web3 provider connection error', event.type || event.message)
-    eventBus.emit('web3-connection-status-changed', { connected: false })
+    emit.connectionStatus(false)
   })
-  web3.currentProvider.on('end', function (event) {
+  web3.currentProvider.on('end', function(event) {
     debug('Web3 provider connection ended', event.reason)
-    eventBus.emit('web3-connection-status-changed', { connected: false })
+    emit.connectionStatus(false)
   })
 
   return web3
 }
 
-function destroyWeb3 (web3) {
+function destroyWeb3(web3) {
   web3.currentProvider.disconnect()
 }
 

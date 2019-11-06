@@ -9,20 +9,20 @@ const createTokenApi = require('./api')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   /**
    * Start the plugin.
    *
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ plugins }) {
+  function start({ plugins }) {
     debug('Starting')
 
     const { erc20, eth } = plugins
 
     return {
-      api: createTokenApi(eth.web3Provider, erc20.abi),
+      api: createTokenApi(eth.web3, erc20.abi),
       name: 'tokens'
     }
   }
@@ -30,7 +30,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {}
+  function stop() {}
 
   return { start, stop }
 }

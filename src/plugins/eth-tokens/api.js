@@ -1,18 +1,15 @@
 'use strict'
 
 const mem = require('mem')
-const Web3 = require('web3')
 
 /**
  * Create ERC20 token helper methods.
  *
- * @param {object} web3Provider A Web3 provider.
+ * @param {object} web3 A Web3 instancwe.
  * @param {object[]} abi The ERC20 ABI.
  * @returns {object} The token methods.
  */
-function createTokenApi(web3Provider, abi) {
-  const web3 = new Web3(web3Provider)
-
+function createTokenApi(web3, abi) {
   const createContract = mem(
     contractAddress => new web3.eth.Contract(abi, contractAddress)
   )

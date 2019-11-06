@@ -10,7 +10,7 @@ const createStream = require('./blocks-stream')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   let blocksStream
   let web3
 
@@ -20,34 +20,41 @@ function createPlugin () {
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ eventBus, plugins }) {
+  function start({ eventBus, plugins }) {
     debug('Initializing stream')
+
+    const emit = {
+      coinBlock(header) {
+        const { hash, number, timestamp } = header
+        debug('New block', hash, number)
+        eventBus.emit('coin-block', { hash, number, timestamp })
+      },
+      walletError: message =>
+        function(err) {
+          debug('Could not get lastest block: %s', err.message)
+          eventBus.emit('wallet-error', {
+            inner: err,
+            message,
+            meta: { plugin: 'eth-blocks' }
+          })
+        }
+    }
 
     web3 = new Web3(plugins.eth.web3Provider)
 
     blocksStream = createStream(web3)
-    blocksStream.on('data', function ({ hash, number, timestamp }) {
-      debug('New block', hash, number)
-      eventBus.emit('coin-block', { hash, number, timestamp })
-    })
-    blocksStream.on('error', function (err) {
-      debug('Could not get lastest block: %s', err.message)
-      eventBus.emit('wallet-error', {
-        inner: err,
-        message: 'Could not get lastest block',
-        meta: { plugin: 'explorer' }
-      })
-    })
+    blocksStream.on('data', emit.coinBlock)
+    blocksStream.on('error', emit.walletError('Could not get lastest block'))
 
     return {
-      events: ['coin-block']
+      events: ['coin-block', 'wallet-error']
     }
   }
 
   /**
    * Stop the plugin.
    */
-  function stop () {
+  function stop() {
     web3 = null
     blocksStream = blocksStream && blocksStream.destroy()
   }
