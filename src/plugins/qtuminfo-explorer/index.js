@@ -11,7 +11,7 @@ const startSocketIoConnection = require('./socket.io')
  * @returns {CorePlugin} The plugin.
  */
 function createPlugin() {
-  let socket
+  let socketApi
 
   /**
    * Start the plugin.
@@ -49,7 +49,7 @@ function createPlugin() {
     }
 
     // Subscribe to new blocks
-    socket = startSocketIoConnection(config, httpApi, emit)
+    socketApi = startSocketIoConnection(config, httpApi, emit)
 
     // Emit the current block
     httpApi
@@ -64,7 +64,7 @@ function createPlugin() {
         getTokenBalance: httpApi.getAddressQrc20Balance,
         getTransaction: httpApi.getTransaction,
         getTransactionReceipt: httpApi.getTransactionReceipt,
-        getTransactionStream: () => new (require('events')).EventEmitter(), // TODO socket.getTransactionStream,
+        getTransactionStream: socketApi.getTransactionStream,
         getTransactions: httpApi.getTransactions,
         registerEvent: () => undefined // TODO implement
       },
@@ -83,10 +83,10 @@ function createPlugin() {
   function stop() {
     debug('Stopping')
 
-    if (socket) {
-      socket.disconnect()
+    if (socketApi) {
+      socketApi.disconnect()
     }
-    socket = null
+    socketApi = null
   }
 
   return {
