@@ -203,7 +203,7 @@ describe('Core E2E', function() {
       const qtumCore = createCore().start({
         chainId: 'test',
         chainType: 'qtum',
-        explorerUrl: process.env.QTUMTEST_EXPLORER,
+        explorerApiUrl: process.env.QTUMTEST_EXPLORER,
         nodeUrl: process.env.QTUMTEST_NODE,
         symbol: 'QTUM'
       })
@@ -239,7 +239,7 @@ describe('Core E2E', function() {
       config: {
         chainId: 'test',
         chainType: 'qtum',
-        explorerUrl: process.env.QTUMTEST_EXPLORER,
+        explorerApiUrl: process.env.QTUMTEST_EXPLORER,
         nodeUrl: process.env.QTUMTEST_NODE,
         ratesUpdateMs: 5000,
         symbol: 'QTUM'

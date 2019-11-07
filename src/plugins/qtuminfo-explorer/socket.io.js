@@ -16,7 +16,7 @@ const pRetry = require('p-retry')
  * @returns {{disconnect:()=>void,getTransactionStream:(string)=>object}} A function to close the connection.
  */
 function startSocketIoConnection(config, httpApi, emit) {
-  const { explorerUrl, useNativeCookieJar } = config
+  const { explorerApiUrl, useNativeCookieJar } = config
 
   const getCookiePromise = useNativeCookieJar
     ? Promise.resolve()
@@ -38,7 +38,7 @@ function startSocketIoConnection(config, httpApi, emit) {
 
   getCookiePromise
     .then(function() {
-      socket = io(explorerUrl, {
+      socket = io(explorerApiUrl, {
         autoConnect: false,
         extraHeaders: useNativeCookieJar ? {} : { Cookie: httpApi.getCookie() }
       })

@@ -11,24 +11,24 @@ const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
  * @returns {object} The endpoints.
  */
 function createHttpApi(config) {
-  const { explorerUrl, useNativeCookieJar } = config
+  const { explorerApiUrl, useNativeCookieJar } = config
 
   // Create cookiejar and axios
 
   const jar = new CookieJar()
   const axios = useNativeCookieJar
     ? createAxios({
-        baseURL: explorerUrl
+        baseURL: explorerApiUrl
       })
     : axiosCookieJarSupport(
         createAxios({
-          baseURL: explorerUrl,
+          baseURL: explorerApiUrl,
           jar,
           withCredentials: true
         })
       )
 
-  const getCookie = () => jar.getCookiesSync(explorerUrl).join(';')
+  const getCookie = () => jar.getCookiesSync(explorerApiUrl).join(';')
 
   // Define explorer access functions
 

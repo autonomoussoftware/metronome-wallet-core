@@ -3,6 +3,8 @@
  * @property {number | string} [chainId]
  * @property {string} [chainType]
  * @property {boolean} [debug]
+ * @property {string} [displayName]
+ * @property {string} [explorerApiUrl]
  * @property {string} [explorerUrl]
  * @property {string} [indexerUrl]
  * @property {string} [nodeUrl]
