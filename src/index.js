@@ -34,6 +34,8 @@ const pluginsList = {
     'eth',
     'eth-blocks',
     'explorer',
+    'transactions-list',
+    'transactions-syncer',
     'coin-balance',
     'eth-wallet',
     'erc20',

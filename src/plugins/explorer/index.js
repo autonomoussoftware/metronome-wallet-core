@@ -16,7 +16,7 @@ const tryParseEventLog = require('./parse-log')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   let indexer
   let syncer
 
@@ -26,7 +26,7 @@ function createPlugin () {
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ config, eventBus, plugins }) {
+  function start({ config, eventBus, plugins }) {
     debug('Starting')
 
     const { eth } = plugins
@@ -51,6 +51,8 @@ function createPlugin () {
       api: {
         getBalance: eth.getBalance,
         getGasPrice: eth.getGasPrice,
+        getTransactions: indexer.getTransactions,
+        getTransactionStream: indexer.getTransactionStream,
         logTransaction: createLogTransaction(queue),
         refreshAllTransactions: syncer.refreshAllTransactions,
         refreshTransaction: refreshTransaction(web3, eventsRegistry, queue),
@@ -66,7 +68,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {
+  function stop() {
     indexer = indexer && indexer.disconnect()
     syncer = syncer && syncer.stop()
   }
