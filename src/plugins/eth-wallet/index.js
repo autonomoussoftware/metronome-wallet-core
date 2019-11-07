@@ -20,12 +20,12 @@ function createPlugin() {
   function start({ plugins }) {
     debug('Starting')
 
-    const { eth, explorer } = plugins
+    const { eth, transactionsList } = plugins
 
     return {
       api: {
         ...hdkey,
-        ...createApi(eth.web3, explorer.logTransaction)
+        ...createApi(eth.web3, transactionsList.logTransaction)
       },
       name: 'wallet'
     }

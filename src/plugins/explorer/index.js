@@ -4,8 +4,7 @@ const debug = require('debug')('metronome-wallet:core:explorer')
 const Web3 = require('web3')
 
 const createEventsRegistry = require('./events')
-const createIndexer = require('./indexer')
-const createLogTransaction = require('./log-transaction')
+const createIndexer = require('./eth-tx-indexer')
 const createQueue = require('./queue')
 const createTransactionSyncer = require('./sync-transactions')
 const refreshTransaction = require('./refresh-transactions')
@@ -51,9 +50,10 @@ function createPlugin() {
       api: {
         getBalance: eth.getBalance,
         getGasPrice: eth.getGasPrice,
+        getTransaction: eth.getTransaction,
+        getTransactionReceipt: eth.getTransactionReceipt,
         getTransactions: indexer.getTransactions,
         getTransactionStream: indexer.getTransactionStream,
-        logTransaction: createLogTransaction(queue),
         refreshAllTransactions: syncer.refreshAllTransactions,
         refreshTransaction: refreshTransaction(web3, eventsRegistry, queue),
         registerEvent: eventsRegistry.register,

@@ -1,7 +1,7 @@
 'use strict'
 
 const { CookieJar } = require('tough-cookie')
-const { create: createAxios } = require('axios')
+const { create: createAxios } = require('axios').default
 const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
 const { isArrayLike } = require('lodash')
 const blockscout = require('./blockscout')
@@ -17,7 +17,7 @@ const pRetry = require('p-retry')
  * @param {object} eventBus The corss-plugin event bus.
  * @returns {object} The exposed indexer API.
  */
-function createIndexer (config, eventBus) {
+function createIndexer(config, eventBus) {
   const { chainId, indexerUrl, useNativeCookieJar } = config
 
   let axios
@@ -30,11 +30,13 @@ function createIndexer (config, eventBus) {
     })
   } else {
     jar = new CookieJar()
-    axios = axiosCookieJarSupport(createAxios(({
-      baseURL: indexerUrl,
-      jar,
-      withCredentials: true
-    })))
+    axios = axiosCookieJarSupport(
+      createAxios({
+        baseURL: indexerUrl,
+        jar,
+        withCredentials: true
+      })
+    )
   }
 
   const getBestBlock = () =>
@@ -50,29 +52,28 @@ function createIndexer (config, eventBus) {
     chainId === 61 // Ethereum Classic Mainnet chain ID
       ? blockscout.getTransactions(address, from, to)
       : axios(`/addresses/${address}/transactions`, { params: { from, to } })
-        .then(res => res.data)
-        .then(transactions =>
-          isArrayLike(transactions)
-            ? transactions
-            : new Error(`Indexer response is invalid for ${address}`)
-        )
+          .then(res => res.data)
+          .then(transactions =>
+            isArrayLike(transactions)
+              ? transactions
+              : new Error(`Indexer response is invalid for ${address}`)
+          )
 
   const getCookiePromise = useNativeCookieJar
     ? Promise.resolve()
     : pRetry(
-      () =>
-        getBestBlock()
-          .then(function () {
+        () =>
+          getBestBlock().then(function() {
             debug('Got indexer cookie')
           }),
-      {
-        forever: true,
-        maxTimeout: 5000,
-        onFailedAttempt (err) {
-          debug('Failed to get indexer cookie', err.message)
+        {
+          forever: true,
+          maxTimeout: 5000,
+          onFailedAttempt(err) {
+            debug('Failed to get indexer cookie', err.message)
+          }
         }
-      }
-    )
+      )
 
   const getSocket = () =>
     io(`${indexerUrl}/v1`, {
@@ -93,14 +94,14 @@ function createIndexer (config, eventBus) {
    * @param {string} address The address.
    * @returns {object} The event emitter.
    */
-  function getTransactionStream (address) {
+  function getTransactionStream(address) {
     const stream = new EventEmitter()
 
     getCookiePromise
-      .then(function () {
+      .then(function() {
         socket = getSocket()
 
-        socket.on('connect', function () {
+        socket.on('connect', function() {
           debug('Indexer connected')
           eventBus.emit('indexer-connection-status-changed', {
             connected: true
@@ -108,7 +109,7 @@ function createIndexer (config, eventBus) {
           socket.emit(
             'subscribe',
             { type: 'txs', addresses: [address] },
-            function (err) {
+            function(err) {
               if (err) {
                 stream.emit('error', err)
               }
@@ -116,7 +117,7 @@ function createIndexer (config, eventBus) {
           )
         })
 
-        socket.on('tx', function (data) {
+        socket.on('tx', function(data) {
           if (!data) {
             stream.emit('error', new Error('Indexer sent no tx event data'))
             return
@@ -134,7 +135,7 @@ function createIndexer (config, eventBus) {
           }
         })
 
-        socket.on('disconnect', function (reason) {
+        socket.on('disconnect', function(reason) {
           debug('Indexer disconnected')
           eventBus.emit('indexer-connection-status-changed', {
             connected: false
@@ -142,17 +143,17 @@ function createIndexer (config, eventBus) {
           stream.emit('error', new Error(`Indexer disconnected with ${reason}`))
         })
 
-        socket.on('reconnect', function () {
+        socket.on('reconnect', function() {
           stream.emit('resync')
         })
 
-        socket.on('error', function (err) {
+        socket.on('error', function(err) {
           stream.emit('error', err)
         })
 
         socket.open()
       })
-      .catch(function (err) {
+      .catch(function(err) {
         stream.emit('error', err)
       })
 
@@ -162,7 +163,7 @@ function createIndexer (config, eventBus) {
   /**
    * Disconnects from the indexer.
    */
-  function disconnect () {
+  function disconnect() {
     if (socket) {
       socket.close()
     }

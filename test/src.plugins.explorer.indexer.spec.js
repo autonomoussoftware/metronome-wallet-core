@@ -4,22 +4,22 @@ const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 const nock = require('nock')
 
-const createIndexer = require('../src/plugins/explorer/indexer')
+const createIndexer = require('../src/plugins/explorer/eth-tx-indexer')
 
 const { randomAddress, randomTxId } = require('./utils')
 
 chai.use(chaiAsPromised).should()
 
-describe('Indexer', function () {
-  before(function () {
+describe('Indexer', function() {
+  before(function() {
     nock.disableNetConnect()
   })
 
-  beforeEach(function () {
+  beforeEach(function() {
     nock.cleanAll()
   })
 
-  it('should query the Metronome indexer for transactions', function () {
+  it('should query the Metronome indexer for transactions', function() {
     const config = {
       chainId: 1,
       indexerUrl: 'http://localhost:3005',
@@ -36,13 +36,13 @@ describe('Indexer', function () {
       .query(() => true)
       .reply(200, transactions)
 
-    return indexer.getTransactions(0, 1, address).then(function (list) {
+    return indexer.getTransactions(0, 1, address).then(function(list) {
       list.should.deep.equals(transactions)
       scope.done()
     })
   })
 
-  it('should query BlockScout for ETC mainnet transactions', function () {
+  it('should query BlockScout for ETC mainnet transactions', function() {
     const config = {
       chainId: 61,
       useNativeCookieJar: true
@@ -58,13 +58,13 @@ describe('Indexer', function () {
       .query(q => q.address === address)
       .reply(200, { status: '1', result: transactions.map(hash => ({ hash })) })
 
-    return indexer.getTransactions(0, 1, address).then(function (list) {
+    return indexer.getTransactions(0, 1, address).then(function(list) {
       list.should.deep.equals(transactions)
       scope.done()
     })
   })
 
-  it('should query BlockScout and parse errors', function () {
+  it('should query BlockScout and parse errors', function() {
     const config = {
       chainId: 61,
       useNativeCookieJar: true
@@ -83,12 +83,12 @@ describe('Indexer', function () {
     return indexer
       .getTransactions(0, 1, address)
       .should.be.rejectedWith(message)
-      .then(function () {
+      .then(function() {
         scope.done()
       })
   })
 
-  after(function () {
+  after(function() {
     nock.enableNetConnect()
   })
 })

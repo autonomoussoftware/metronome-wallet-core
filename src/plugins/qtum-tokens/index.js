@@ -17,13 +17,12 @@ function createPlugin() {
   function start({ plugins }) {
     debug('Starting')
 
-    const { explorer } = plugins
+    const { explorer, wallet } = plugins
 
     return {
       api: {
         getTokenBalance: explorer.getTokenBalance,
-        // TODO implement
-        getTokensGasLimit: () => Promise.reject(new Error('Not implemented'))
+        getTokensGasLimit: wallet.getTokensGasLimit
       },
       name: 'tokens'
     }

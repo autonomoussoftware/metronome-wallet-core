@@ -68,7 +68,7 @@ function createPlugin() {
       })
       .catch(function(err) {
         // TODO emit wallet error
-        console.log('Could not register token', err)
+        console.log('Could not register token', err.message)
       })
 
     // Register all MET events
@@ -155,19 +155,19 @@ function createPlugin() {
         // buyMetronome: buyMet(
         //   web3,
         //   chainId,
-        //   explorer.logTransaction,
+        //   transactionsList.logTransaction,
         //   metaParsers
         // ),
         // convertCoin: convertCoin(
         //   web3,
         //   chainId,
-        //   explorer.logTransaction,
+        //   transactionsList.logTransaction,
         //   metaParsers
         // ),
         // convertMet: convertMet(
         //   web3,
         //   chainId,
-        //   explorer.logTransaction,
+        //   transactionsList.logTransaction,
         //   metaParsers
         // ),
         // getExportMetFee: getExportMetFee(web3, chainId),
@@ -177,7 +177,7 @@ function createPlugin() {
         // exportMet: exportMet(
         //   web3,
         //   chainId,
-        //   explorer.logTransaction,
+        //   transactionsList.logTransaction,
         //   metaParsers
         // ),
         // getAuctionGasLimit: over(estimateAuctionGas(web3, chainId)),
@@ -188,10 +188,10 @@ function createPlugin() {
         // importMet: importMet(
         //   web3,
         //   chainId,
-        //   explorer.logTransaction,
+        //   transactionsList.logTransaction,
         //   metaParsers
         // ),
-        // sendMet: sendMet(web3, chainId, explorer.logTransaction, metaParsers)
+        // sendMet: sendMet(web3, chainId, transactionsList.logTransaction, metaParsers)
       },
       events: [
         'attestation-threshold-updated',

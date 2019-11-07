@@ -8,7 +8,6 @@ const pRetry = require('p-retry')
 const promiseAllProps = require('promise-all-props')
 
 function createQueue(config, eventBus, plugins) {
-  //, web3) {
   const metasCache = {}
 
   let pendingEvents = []
