@@ -54,6 +54,7 @@
     "wallet-address-validator": "^0.2.4",
     "web3": "1.2.1",
     "web3-core-promievent": "^1.2.2",
+    "web3-eth-abi": "^1.2.1",
     "web3-utils": "1.2.1",
     "websocket-reconnector": "^1.1.1",
     "wif": "^2.0.6"
