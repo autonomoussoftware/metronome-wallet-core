@@ -1,8 +1,11 @@
 'use strict'
 
-const tryParseEventLog = (web3, eventsRegistry) =>
-  (log, address) =>
-    eventsRegistry.getAll().map(function (registration) {
+const web3EthAbi = require('web3-eth-abi')
+
+const tryParseEventLog = eventsRegistry => (log, address) =>
+  eventsRegistry
+    .getAll()
+    .map(function(registration) {
       const {
         abi,
         contractAddress,
@@ -17,7 +20,7 @@ const tryParseEventLog = (web3, eventsRegistry) =>
         return null
       }
 
-      const signature = web3.eth.abi.encodeEventSignature(eventAbi)
+      const signature = web3EthAbi.encodeEventSignature(eventAbi)
 
       const data = log.data || (log.raw && log.raw.data)
       const topics = log.topics || (log.raw && log.raw.topics)
@@ -26,7 +29,7 @@ const tryParseEventLog = (web3, eventsRegistry) =>
         return null
       }
 
-      const returnValues = web3.eth.abi.decodeLog(
+      const returnValues = web3EthAbi.decodeLog(
         eventAbi.inputs,
         data,
         eventAbi.anonymous ? topics : topics.slice(1)
@@ -43,6 +46,6 @@ const tryParseEventLog = (web3, eventsRegistry) =>
         })
       }
     })
-      .filter(data => !!data)
+    .filter(data => !!data)
 
 module.exports = tryParseEventLog

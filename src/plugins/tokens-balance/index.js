@@ -7,7 +7,7 @@ const debug = require('debug')('metronome-wallet:core:tokens-balance')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   let walletId
   let accountAddress
   let registeredTokens = []
@@ -18,18 +18,18 @@ function createPlugin () {
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ eventBus, plugins }) {
-    const { erc20, explorer, tokens } = plugins
+  function start({ eventBus, plugins }) {
+    const { erc20, tokens, transactionsSyncer } = plugins
 
     const emit = {
-      balances (address) {
-        registeredTokens.forEach(function ({
+      balances(address) {
+        registeredTokens.forEach(function({
           contractAddress,
           meta: { symbol }
         }) {
           tokens
             .getTokenBalance(contractAddress, address)
-            .then(function (balance) {
+            .then(function(balance) {
               eventBus.emit('wallet-state-changed', {
                 [walletId]: {
                   addresses: {
@@ -49,7 +49,7 @@ function createPlugin () {
         })
       },
       walletError: symbol =>
-        function (err) {
+        function(err) {
           eventBus.emit('wallet-error', {
             inner: err,
             message: `Could not get ${symbol} token balance`,
@@ -58,18 +58,18 @@ function createPlugin () {
         }
     }
 
-    eventBus.on('open-wallets', function ({ address, activeWallet }) {
+    eventBus.on('open-wallets', function({ address, activeWallet }) {
       accountAddress = address
       walletId = activeWallet
       emit.balances(address)
     })
-    eventBus.on('coin-tx', function () {
+    eventBus.on('coin-tx', function() {
       if (accountAddress && walletId) {
         emit.balances(accountAddress)
       }
     })
 
-    const registerToken = function (contractAddress, meta) {
+    const registerToken = function(contractAddress, meta) {
       debug('Registering token', contractAddress, meta)
 
       if (registeredTokens.find(t => t.address === contractAddress)) {
@@ -79,7 +79,7 @@ function createPlugin () {
       registeredTokens.push({ contractAddress, meta })
       erc20
         .getEventDataCreators(contractAddress)
-        .forEach(explorer.registerEvent)
+        .forEach(transactionsSyncer.registerEvent)
     }
 
     return {
@@ -94,7 +94,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {
+  function stop() {
     walletId = null
     accountAddress = null
     registeredTokens = []

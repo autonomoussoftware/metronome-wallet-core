@@ -1,14 +1,8 @@
 'use strict'
 
 const debug = require('debug')('metronome-wallet:core:explorer')
-const Web3 = require('web3')
 
-const createEventsRegistry = require('./events')
 const createIndexer = require('./eth-tx-indexer')
-const createQueue = require('./queue')
-const createTransactionSyncer = require('./sync-transactions')
-const refreshTransaction = require('./refresh-transactions')
-const tryParseEventLog = require('./parse-log')
 
 /**
  * Create the plugin.
@@ -30,21 +24,7 @@ function createPlugin() {
 
     const { eth } = plugins
 
-    const web3 = new Web3(eth.web3Provider)
-
-    const eventsRegistry = createEventsRegistry()
-    const queue = createQueue(config, eventBus, web3)
-
     indexer = createIndexer(config, eventBus)
-
-    syncer = createTransactionSyncer(
-      config,
-      eventBus,
-      web3,
-      queue,
-      eventsRegistry,
-      indexer
-    )
 
     return {
       api: {
@@ -53,12 +33,7 @@ function createPlugin() {
         getTransaction: eth.getTransaction,
         getTransactionReceipt: eth.getTransactionReceipt,
         getTransactions: indexer.getTransactions,
-        getTransactionStream: indexer.getTransactionStream,
-        refreshAllTransactions: syncer.refreshAllTransactions,
-        refreshTransaction: refreshTransaction(web3, eventsRegistry, queue),
-        registerEvent: eventsRegistry.register,
-        syncTransactions: syncer.syncTransactions,
-        tryParseEventLog: tryParseEventLog(web3, eventsRegistry)
+        getTransactionStream: indexer.getTransactionStream
       },
       events: ['indexer-connection-status-changed', 'wallet-error'],
       name: 'explorer'

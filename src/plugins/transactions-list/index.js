@@ -24,6 +24,7 @@ function createPlugin() {
 
     return {
       api: {
+        addEvent: queue.addEvent,
         addTransaction: queue.addTransaction,
         logTransaction: createLogTransaction(queue)
       },
