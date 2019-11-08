@@ -61,6 +61,8 @@ function createPlugin() {
       api: {
         getBalance: httpApi.getAddressBalance,
         getGasPrice: httpApi.getMinGasPrice,
+        // TODO implement
+        getPastEvents: () => Promise.resolve([]),
         getTokenBalance: httpApi.getAddressQrc20Balance,
         getTransaction: httpApi.getTransaction,
         getTransactionReceipt: httpApi.getTransactionReceipt,

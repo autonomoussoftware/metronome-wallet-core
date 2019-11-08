@@ -30,6 +30,8 @@ function createPlugin() {
       api: {
         getBalance: eth.getBalance,
         getGasPrice: eth.getGasPrice,
+        // TODO implement
+        getPastEvents: () => Promise.resolve([]),
         getTransaction: eth.getTransaction,
         getTransactionReceipt: eth.getTransactionReceipt,
         getTransactions: indexer.getTransactions,

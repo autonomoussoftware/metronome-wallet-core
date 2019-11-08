@@ -38,6 +38,7 @@ function startSocketIoConnection(config, httpApi, emit) {
 
   getCookiePromise
     .then(function() {
+      debug('Creating connection')
       socket = io(explorerApiUrl, {
         autoConnect: false,
         extraHeaders: useNativeCookieJar ? {} : { Cookie: httpApi.getCookie() }
@@ -72,7 +73,9 @@ function startSocketIoConnection(config, httpApi, emit) {
   return {
     disconnect() {
       if (socket) {
+        debug('Disconnecting from explorer')
         socket.disconnect()
+        socket = null
       }
     },
     getTransactionStream(address) {
