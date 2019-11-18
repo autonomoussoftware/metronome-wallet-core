@@ -19,8 +19,10 @@ function createPlugin() {
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start({ config, eventBus }) {
+  function start({ config, eventBus, plugins }) {
     debug('Starting')
+
+    const { coin, erc20 } = plugins
 
     const httpApi = createHttpApi(config)
 
@@ -64,6 +66,10 @@ function createPlugin() {
         // TODO implement
         getPastEvents: () => Promise.resolve([]),
         getTokenBalance: httpApi.getAddressQrc20Balance,
+        getTokensGasLimit: httpApi.getQrc20TransferGasLimit(
+          erc20.abi,
+          coin.lib
+        ),
         getTransaction: httpApi.getTransaction,
         getTransactionReceipt: httpApi.getTransactionReceipt,
         getTransactionStream: socketApi.getTransactionStream,

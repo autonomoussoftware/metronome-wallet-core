@@ -26,7 +26,6 @@ function createApi(walletRPCProvider, qtumRPC, logTransaction) {
   return {
     getGasLimit,
     getSigningLib,
-    // getTokensGasLimit, // TODO implememnt
     sendCoin
   }
 }

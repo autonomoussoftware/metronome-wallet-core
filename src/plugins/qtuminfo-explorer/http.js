@@ -3,6 +3,7 @@
 const { CookieJar } = require('tough-cookie')
 const { create: createAxios } = require('axios').default
 const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
+const { encodeMethod } = require('qtumjs-ethjs-abi')
 
 /**
  * Create an API object to access the HTTP endpoints of the explorer.
@@ -86,6 +87,33 @@ function createHttpApi(config) {
       .then(res => res.data)
       .then(data => data.transactions) // TODO consider pagination
 
+  const getQrc20TransferGasLimit = (abi, { qtumRPC }) => ({
+    token,
+    to,
+    from,
+    value
+  }) =>
+    qtumRPC
+      .getHexAddress(to)
+      .then(_to =>
+        axios(`/api/contract/${token}/call`, {
+          params: {
+            sender: from,
+            data: encodeMethod(
+              abi.find(d => d.name === 'transfer' && d.type === 'function'),
+              [_to, value]
+            )
+          }
+        })
+      )
+      .then(res => res.data)
+      .then(function(data) {
+        if (data.executionResult.excepted !== 'None') {
+          throw new Error('The execution failed due to an exception')
+        }
+        return { gasLimit: data.executionResult.gasUsed }
+      })
+
   return {
     getAddressBalance,
     getAddressQrc20Balance,
@@ -93,6 +121,7 @@ function createHttpApi(config) {
     getCookie,
     getInfo,
     getMinGasPrice,
+    getQrc20TransferGasLimit,
     getTransaction,
     getTransactionReceipt,
     getTransactions

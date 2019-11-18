@@ -17,12 +17,12 @@ function createPlugin() {
   function start({ plugins }) {
     debug('Starting')
 
-    const { explorer, wallet } = plugins
+    const { explorer } = plugins
 
     return {
       api: {
         getTokenBalance: explorer.getTokenBalance,
-        getTokensGasLimit: wallet.getTokensGasLimit
+        getTokensGasLimit: explorer.getTokensGasLimit
       },
       name: 'tokens'
     }
