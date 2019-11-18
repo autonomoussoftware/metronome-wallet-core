@@ -48,11 +48,10 @@ function createPlugin() {
     return {
       api: {
         ...createApi(web3),
-        web3,
-        web3Provider: web3.currentProvider
+        lib: web3
       },
       events: ['wallet-error', 'web3-connection-status-changed'],
-      name: 'eth'
+      name: 'coin'
     }
   }
 

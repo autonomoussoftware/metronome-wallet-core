@@ -19,10 +19,10 @@ function createPlugin() {
   function start({ plugins }) {
     debug('Starting')
 
-    const { erc20, eth } = plugins
+    const { erc20, coin } = plugins
 
     return {
-      api: createTokenApi(eth.web3, erc20.abi),
+      api: createTokenApi(coin.lib, erc20.abi),
       name: 'tokens'
     }
   }

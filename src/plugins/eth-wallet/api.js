@@ -10,11 +10,15 @@ function createApi(web3, logTransaction) {
       .add(web3.eth.accounts.privateKeyToAccount(privateKey))
   }
 
+  function getSigningLib(privateKey) {
+    addAccount(privateKey)
+    return web3
+  }
+
   const sendCoin = function(privateKey, transactionOptions) {
     const { from, to, value, gas, gasPrice } = transactionOptions
-    addAccount(privateKey)
-    return web3.eth
-      .getTransactionCount(from, 'pending')
+    return getSigningLib(privateKey)
+      .eth.getTransactionCount(from, 'pending')
       .then(nonce =>
         logTransaction(
           web3.eth.sendTransaction({ from, to, value, gas, gasPrice, nonce }),
@@ -25,6 +29,7 @@ function createApi(web3, logTransaction) {
 
   return {
     getGasLimit,
+    getSigningLib,
     sendCoin
   }
 }

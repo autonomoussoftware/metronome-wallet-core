@@ -22,18 +22,18 @@ function createPlugin() {
   function start({ config, eventBus, plugins }) {
     debug('Starting')
 
-    const { eth } = plugins
+    const { coin } = plugins
 
     indexer = createIndexer(config, eventBus)
 
     return {
       api: {
-        getBalance: eth.getBalance,
-        getGasPrice: eth.getGasPrice,
+        getBalance: coin.getBalance,
+        getGasPrice: coin.getGasPrice,
         // TODO implement
         getPastEvents: () => Promise.resolve([]),
-        getTransaction: eth.getTransaction,
-        getTransactionReceipt: eth.getTransactionReceipt,
+        getTransaction: coin.getTransaction,
+        getTransactionReceipt: coin.getTransactionReceipt,
         getTransactions: indexer.getTransactions,
         getTransactionStream: indexer.getTransactionStream
       },

@@ -13,13 +13,13 @@ const { createMetronome, createProvider } = require('metronome-sdk')
 //   getMetToMetEstimate
 // } = require('./converter-api')
 // const { getExportMetFee, getMerkleRoot } = require('./porter-api')
-// const {
-//   estimateExportMetGas,
-//   estimateImportMetGas,
-//   exportMet,
-//   importMet,
-//   sendMet
-// } = require('./token-api')
+const {
+  //   estimateExportMetGas,
+  //   estimateImportMetGas,
+  //   exportMet,
+  //   importMet,
+  sendMet
+} = require('./token-api')
 // const auctionEvents = require('./auction-events')
 // const converterEvents = require('./converter-events')
 // const getAttestationThreshold = require('./validator-status')
@@ -42,22 +42,16 @@ function createPlugin() {
    * @param {object} params.plugins All other plugins.
    * @returns {{api:object,events:string[],name:string}} The plugin API.
    */
-  function start({ config, eventBus, plugins }) {
-    const { chainType } = config
-    const { eth, qtum, tokensBalance } = plugins
+  function start({ eventBus, plugins }) {
+    const { erc20, coin, tokensBalance, transactionsList, wallet } = plugins
     // const { chainId, chainType, gasOverestimation } = config
     // const { eth, explorer, qtum, tokens } = plugins
 
-    let metProvider
-    if (chainType === 'ethereum') {
-      metProvider = createProvider.fromWeb3(eth.web3)
-    } else if (chainType === 'qtum') {
-      metProvider = createProvider.fromQtumRPC({ qtumRPC: qtum.qtumRPC })
-    }
+    const metProvider = createProvider.fromLib(coin.lib)
     const met = createMetronome(metProvider)
 
     // Register MET token
-    metProvider
+    met
       .getContracts()
       .then(function({ METToken }) {
         tokensBalance.registerToken(METToken.options.address, {
@@ -132,16 +126,16 @@ function createPlugin() {
     eventBus.on('coin-block', emitMetronomeStatus)
 
     // Collect meta parsers
-    // const metaParsers = Object.assign(
-    //   {
-    //     auction: auctionEvents.auctionMetaParser,
-    //     converter: converterEvents.converterMetaParser,
-    //     export: porterEvents.exportMetaParser,
-    //     import: porterEvents.importMetaParser,
-    //     importRequest: porterEvents.importRequestMetaParser
-    //   },
-    //   tokens.metaParsers
-    // )
+    const metaParsers = Object.assign(
+      //   {
+      //     auction: auctionEvents.auctionMetaParser,
+      //     converter: converterEvents.converterMetaParser,
+      //     export: porterEvents.exportMetaParser,
+      //     import: porterEvents.importMetaParser,
+      //     importRequest: porterEvents.importRequestMetaParser
+      //   },
+      erc20.metaParsers
+    )
 
     // Define gas over-estimation wrapper
     // const over = fn => (...args) =>
@@ -191,7 +185,11 @@ function createPlugin() {
         //   transactionsList.logTransaction,
         //   metaParsers
         // ),
-        // sendMet: sendMet(web3, chainId, transactionsList.logTransaction, metaParsers)
+        sendMet: sendMet(
+          wallet.getSigningLib,
+          transactionsList.logTransaction,
+          metaParsers
+        )
       },
       events: [
         'attestation-threshold-updated',

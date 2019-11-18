@@ -1,7 +1,6 @@
 'use strict'
 
 const debug = require('debug')('metronome-wallet:core:eth-blocks')
-const Web3 = require('web3')
 
 const createStream = require('./blocks-stream')
 
@@ -12,7 +11,6 @@ const createStream = require('./blocks-stream')
  */
 function createPlugin() {
   let blocksStream
-  let web3
 
   /**
    * Start the plugin.
@@ -22,6 +20,8 @@ function createPlugin() {
    */
   function start({ eventBus, plugins }) {
     debug('Initializing stream')
+
+    const { coin } = plugins
 
     const emit = {
       coinBlock(header) {
@@ -40,9 +40,7 @@ function createPlugin() {
         }
     }
 
-    web3 = new Web3(plugins.eth.web3Provider)
-
-    blocksStream = createStream(web3)
+    blocksStream = createStream(coin.lib)
     blocksStream.on('data', emit.coinBlock)
     blocksStream.on('error', emit.walletError('Could not get lastest block'))
 
@@ -55,7 +53,6 @@ function createPlugin() {
    * Stop the plugin.
    */
   function stop() {
-    web3 = null
     blocksStream = blocksStream && blocksStream.destroy()
   }
 

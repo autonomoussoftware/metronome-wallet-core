@@ -42,10 +42,10 @@ function createPlugin() {
 
     return {
       api: {
-        qtumRPC
+        lib: { qtumRPC }
       },
       events: ['wallet-error'],
-      name: 'qtum'
+      name: 'coin'
     }
   }
 
