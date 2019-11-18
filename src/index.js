@@ -31,6 +31,7 @@ const plugins = {
 const pluginsList = {
   ethereum: [
     'rates',
+    'erc20',
     'eth',
     'eth-blocks',
     'explorer',
@@ -38,20 +39,19 @@ const pluginsList = {
     'transactions-syncer',
     'coin-balance',
     'eth-wallet',
-    'erc20',
     'eth-tokens',
     'tokens-balance',
     'metronome'
   ],
   qtum: [
     'rates',
+    'erc20',
     'qtum',
     'qtuminfo-explorer',
     'transactions-list',
     'transactions-syncer',
     'coin-balance',
     'qtum-wallet',
-    'erc20',
     'qtum-tokens',
     'tokens-balance',
     'metronome'
