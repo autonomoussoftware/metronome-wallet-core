@@ -87,7 +87,7 @@ function createHttpApi(config) {
       .then(res => res.data)
       .then(data => data.transactions) // TODO consider pagination
 
-  const getQrc20TransferGasLimit = (abi, { qtumRPC }) => ({
+  const getQrc20TransferGasLimit = (abi, { qtumRPC }, gasOverestimation) => ({
     token,
     to,
     from,
@@ -111,7 +111,9 @@ function createHttpApi(config) {
         if (data.executionResult.excepted !== 'None') {
           throw new Error('The execution failed due to an exception')
         }
-        return { gasLimit: data.executionResult.gasUsed }
+        return {
+          gasLimit: Math.round(data.executionResult.gasUsed * gasOverestimation)
+        }
       })
 
   return {

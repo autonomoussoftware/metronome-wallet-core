@@ -6,6 +6,7 @@
  * @property {string} [displayName]
  * @property {string} [explorerApiUrl]
  * @property {string} [explorerUrl]
+ * @property {number} [gasOverestimation]
  * @property {string} [indexerUrl]
  * @property {string} [nodeUrl]
  * @property {string} [symbol]
