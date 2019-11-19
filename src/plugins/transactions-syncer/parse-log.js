@@ -2,6 +2,8 @@
 
 const web3EthAbi = require('web3-eth-abi')
 
+const hexPrefixed = str => (str.startsWith('0x') ? str : `0x${str}`)
+
 const tryParseEventLog = eventsRegistry => (log, address) =>
   eventsRegistry
     .getAll()
@@ -25,7 +27,10 @@ const tryParseEventLog = eventsRegistry => (log, address) =>
       const data = log.data || (log.raw && log.raw.data)
       const topics = log.topics || (log.raw && log.raw.topics)
 
-      if (log.address !== contractAddress || topics[0] !== signature) {
+      if (
+        log.address !== contractAddress ||
+        hexPrefixed(topics[0]) !== signature
+      ) {
         return null
       }
 
@@ -37,6 +42,7 @@ const tryParseEventLog = eventsRegistry => (log, address) =>
 
       return {
         contractAddress,
+        eventAbi,
         filter,
         metaParser,
         parsed: Object.assign({}, log, {

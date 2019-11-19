@@ -1,7 +1,9 @@
 'use strict'
 
+const { identity } = require('lodash')
 const { QtumRPC } = require('qtumjs')
 const debug = require('debug')('metronome-wallet:core:qtum')
+const qtumjslib = require('qtumjs-lib')
 
 const checkChain = require('./check-chain')
 
@@ -42,7 +44,23 @@ function createPlugin() {
 
     return {
       api: {
-        lib: { qtumRPC }
+        getHexAddress: address => qtumRPC.getHexAddress(address),
+        lib: { qtumRPC },
+        parseReturnValues(returnValues, eventAbi) {
+          eventAbi.inputs.forEach(function(input) {
+            if (input.type !== 'address') {
+              return
+            }
+            returnValues[input.name] = qtumjslib.address.toBase58Check(
+              Buffer.from(returnValues[input.name].substr(2), 'hex'),
+              qtumjslib.networks[
+                config.chainId === 'test' ? 'qtum_testnet' : 'qtum'
+              ].pubKeyHash
+            )
+          })
+          return returnValues
+        },
+        toChecksumAddress: identity
       },
       events: ['wallet-error'],
       name: 'coin'

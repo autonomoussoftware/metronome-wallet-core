@@ -1,6 +1,6 @@
 'use strict'
 
-const { noop, once } = require('lodash')
+const { identity, noop, once } = require('lodash')
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 const EventEmitter = require('events')
@@ -86,6 +86,10 @@ describe('Transactions syncer plugin', function() {
       })
 
       const plugins = {
+        coin: {
+          getHexAddress: identity,
+          toChecksumAddress: identity
+        },
         explorer: {
           getTransactionReceipt(_hash) {
             _hash.should.equal(hash)
@@ -214,6 +218,11 @@ describe('Transactions syncer plugin', function() {
       })
 
       const plugins = {
+        coin: {
+          getHexAddress: identity,
+          parseReturnValues: identity,
+          toChecksumAddress: identity
+        },
         explorer: {
           getTransactionReceipt(_hash) {
             _hash.should.equal(hash)
@@ -278,6 +287,9 @@ describe('Transactions syncer plugin', function() {
       })
 
       const plugins = {
+        coin: {
+          getHexAddress: identity
+        },
         explorer: {
           getTransactionReceipt(_hash) {
             _hash.should.equal(hash)
@@ -351,6 +363,11 @@ describe('Transactions syncer plugin', function() {
       })
 
       const plugins = {
+        coin: {
+          getHexAddress: identity,
+          parseReturnValues: identity,
+          toChecksumAddress: identity
+        },
         explorer: {
           getTransactionReceipt(_hash) {
             _hash.should.equal(hash)

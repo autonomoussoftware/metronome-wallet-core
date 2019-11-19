@@ -1,5 +1,7 @@
 'use strict'
 
+const { identity } = require('lodash')
+const { toChecksumAddress } = require('web3-utils')
 const debug = require('debug')('metronome-wallet:core:eth')
 
 const { createWeb3, destroyWeb3 } = require('./web3')
@@ -47,8 +49,11 @@ function createPlugin() {
 
     return {
       api: {
-        ...createApi(web3),
-        lib: web3
+        getHexAddress: address => Promise.resolve(address),
+        lib: web3,
+        parseReturnValues: identity,
+        toChecksumAddress,
+        ...createApi(web3)
       },
       events: ['wallet-error', 'web3-connection-status-changed'],
       name: 'coin'

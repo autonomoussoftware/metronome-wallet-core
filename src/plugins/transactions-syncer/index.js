@@ -25,7 +25,7 @@ function createPlugin() {
     debug('Starting')
 
     const { displayName, symbol } = config
-    const { explorer, transactionsList } = plugins
+    const { coin, explorer, transactionsList } = plugins
 
     const emit = {
       walletError(message, err) {
@@ -144,7 +144,10 @@ function createPlugin() {
 
     function refreshTransaction(hash, address) {
       debug('Refreshing %s', hash)
-      return explorer.getTransactionReceipt(hash).then(function(receipt) {
+      return Promise.all([
+        explorer.getTransactionReceipt(hash, true),
+        coin.getHexAddress(address)
+      ]).then(function([receipt, addressHex]) {
         const pending = []
 
         // Skip unconfirmed transactions
@@ -154,8 +157,8 @@ function createPlugin() {
 
         // Refresh transaction
         if (
-          toChecksumAddress(receipt.from) === address ||
-          toChecksumAddress(receipt.to) === address
+          coin.toChecksumAddress(receipt.from) === address ||
+          coin.toChecksumAddress(receipt.to) === address
         ) {
           debug('Pushing tx %s', hash)
           pending.push(transactionsList.addTransaction(address)(hash).promise)
@@ -166,9 +169,11 @@ function createPlugin() {
           const tryParseEventLog = createTryParseEventLog(eventsRegistry)
 
           receipt.logs.forEach(function(log) {
-            tryParseEventLog(log, address).forEach(function(parsedLog) {
+            const filterAddress = toChecksumAddress(addressHex)
+            tryParseEventLog(log, filterAddress).forEach(function(parsedLog) {
               const {
                 contractAddress,
+                eventAbi,
                 filter,
                 metaParser,
                 parsed: { event, returnValues }
@@ -177,10 +182,16 @@ function createPlugin() {
               if (isMatch(returnValues, filter)) {
                 debug('Pushing event %s of tx %s', event, hash)
                 pending.push(
-                  transactionsList.addEvent(address, metaParser)({
+                  transactionsList.addEvent(
+                    address,
+                    metaParser
+                  )({
                     address: contractAddress,
                     event,
+                    returnValues: coin.parseReturnValues(
                     returnValues,
+                      eventAbi
+                    ),
                     transactionHash: hash
                   })
                 )
