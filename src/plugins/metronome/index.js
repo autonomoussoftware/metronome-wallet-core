@@ -146,6 +146,8 @@ function createPlugin() {
     // Build and return API
     return {
       api: {
+        getContractAddress: name =>
+          met.getContracts().then(contracts => contracts[name].options.address),
         // buyMetronome: buyMet(
         //   web3,
         //   chainId,

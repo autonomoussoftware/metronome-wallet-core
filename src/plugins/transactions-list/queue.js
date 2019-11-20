@@ -90,10 +90,10 @@ function createQueue(config, eventBus, plugins) {
       Object.keys(grouped).map(hash =>
         promiseAllProps({
           transaction: retryExplorerCall(() =>
-            plugins.explorer.getTransaction(hash, true)
+            plugins.explorer.getTransaction(hash, address)
           ),
           receipt: retryExplorerCall(() =>
-            plugins.explorer.getTransactionReceipt(hash, true)
+            plugins.explorer.getTransactionReceipt(hash, address)
           ),
           meta: mergeEvents(hash, grouped[hash]),
           done: mergeDones(grouped[hash])

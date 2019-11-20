@@ -4,6 +4,9 @@ const { CookieJar } = require('tough-cookie')
 const { create: createAxios } = require('axios').default
 const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
 const { encodeMethod } = require('qtumjs-ethjs-abi')
+const { padStart } = require('lodash')
+const parseContractLogs = require('metronome-sdk/src/parse-logs')
+const web3EthAbi = require('web3-eth-abi')
 
 /**
  * Create an API object to access the HTTP endpoints of the explorer.
@@ -49,37 +52,40 @@ function createHttpApi(config) {
   const getMinGasPrice = () =>
     getInfo().then(info => ({ gasPrice: info.dgpInfo.minGasPrice.toString() }))
 
-  const getTransaction = (hash, ethFormat) =>
+  const getTransaction = (hash, address) =>
     axios(`/api/tx/${hash}`)
       .then(res => res.data)
       .then(function(tx) {
-        return ethFormat
-          ? {
-              blockHash: tx.blockHash,
-              blockNumber: tx.blockHeight,
-              from: tx.inputs[0].address,
-              fees: tx.fees,
-              hash: tx.hash,
-              to: tx.outputs[0].address,
-              value: tx.outputs[0].value
-            }
-          : tx
+        const txInput = tx.inputs[0]
+        const txOutput =
+          txInput.address === address
+            ? tx.outputs[0]
+            : tx.outputs.find(o => o.address === address)
+        return {
+          blockHash: tx.blockHash,
+          blockNumber: tx.blockHeight,
+          from: txInput.address,
+          fees: tx.fees,
+          hash: tx.hash,
+          isRefund: txOutput.isRefund,
+          to: txOutput.address,
+          receipt: txOutput.receipt || { excepted: 'None' },
+          value: txOutput.value
+        }
       })
-  const getTransactionReceipt = (hash, ethFormat) =>
-    getTransaction(hash).then(function(tx) {
+  const getTransactionReceipt = (hash, address) =>
+    getTransaction(hash, address).then(function(tx) {
       return Object.assign(
-        ethFormat
-          ? {
-              blockHash: tx.blockHash,
-              blockNumber: tx.blockHeight,
-              from: tx.inputs[0].address,
-              logs: [],
-              status: true,
-              to: tx.outputs[0].address,
-              transactionHash: tx.hash
-            }
-          : {},
-        tx.outputs[0].receipt
+        {
+          blockHash: tx.blockHash,
+          blockNumber: tx.blockNumber,
+          from: tx.from,
+          logs: [],
+          status: tx.receipt.excepted === 'None',
+          to: tx.to,
+          transactionHash: tx.hash
+        },
+        tx.receipt
       )
     })
   const getTransactions = (fromBlock, toBlock, address) =>
@@ -116,6 +122,56 @@ function createHttpApi(config) {
         }
       })
 
+  const getPastEvents = coin =>
+    function(abi, contractAddress, eventName, options) {
+      const { fromBlock, toBlock, filter } = options
+
+      const params = { contract: contractAddress, fromBlock, toBlock }
+
+      const descriptor = abi.find(
+        d => d.type === 'event' && d.name === eventName
+      )
+      params.topic1 = web3EthAbi.encodeEventSignature(descriptor).substr(2)
+
+      const topics = descriptor.inputs.filter(i => i.indexed)
+      topics.forEach(function(topic, i) {
+        const filterValue = filter[topic.name]
+        if (!filterValue) {
+          return
+        }
+        params[`topic${i + 2}`] =
+          topic.type === 'address'
+            ? padStart(coin.getHexAddressSync(filterValue), 64, '0')
+            : filterValue
+      })
+
+      return axios('/api/searchlogs', {
+        params
+      })
+        .then(res => res.data)
+        .then(data =>
+          data.logs
+            .map(log =>
+              parseContractLogs(
+                {
+                  options: {
+                    address: contractAddress,
+                    jsonInterface: abi
+                  }
+                },
+                {
+                  logs: [{ ...log, transactionHash: log.transactionId }]
+                }
+              )
+            )
+            .map(receipt => receipt.logs[0])
+            .map(log => ({
+              ...log,
+              returnValues: coin.parseReturnValues(log.returnValues, descriptor)
+            }))
+        )
+    }
+
   return {
     getAddressBalance,
     getAddressQrc20Balance,
@@ -123,6 +179,7 @@ function createHttpApi(config) {
     getCookie,
     getInfo,
     getMinGasPrice,
+    getPastEvents,
     getQrc20TransferGasLimit,
     getTransaction,
     getTransactionReceipt,

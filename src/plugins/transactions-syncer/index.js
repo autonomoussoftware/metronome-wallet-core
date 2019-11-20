@@ -101,6 +101,7 @@ function createPlugin() {
     }
 
     function getPastEvents(fromBlock, toBlock, address) {
+      debug('Getting past events', address)
       return pAll(
         eventsRegistry
           .getAll()
@@ -145,7 +146,7 @@ function createPlugin() {
     function refreshTransaction(hash, address) {
       debug('Refreshing %s', hash)
       return Promise.all([
-        explorer.getTransactionReceipt(hash, true),
+        explorer.getTransactionReceipt(hash, address),
         coin.getHexAddress(address)
       ]).then(function([receipt, addressHex]) {
         const pending = []

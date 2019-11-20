@@ -17,6 +17,7 @@ const debug = createDebug('metronome-wallet:core:test:e2e')
 function addTests(fixtures) {
   const {
     address,
+    blocksRange,
     config,
     receiptAddressFormatter,
     sendCoinDefaults,
@@ -24,8 +25,6 @@ function addTests(fixtures) {
   } = fixtures
 
   it('should initialize, emit rates and blocks', function(done) {
-    this.timeout(0)
-
     let blocksCount = 0
     let ratesCount = 0
 
@@ -71,9 +70,7 @@ function addTests(fixtures) {
   })
 
   it('should emit wallet balance', function(done) {
-    this.timeout(0)
-
-    const walletId = 1
+    const walletId = 'walletId'
 
     const core = createCore()
     const { emitter } = core.start(config)
@@ -113,7 +110,7 @@ function addTests(fixtures) {
     const seed = bip39.mnemonicToSeedHex(mnemonic).toString('hex')
     const address0 = api.wallet.createAddress(seed)
     const privateKey = api.wallet.createPrivateKey(seed)
-    const walletId = 1
+    const walletId = 'walletId'
 
     const to = toAddress
     const value = (Math.random() * 1000).toFixed()
@@ -181,6 +178,97 @@ function addTests(fixtures) {
     }
     api.wallet.sendCoin(privateKey, transactionObject).catch(end)
   })
+
+  it.skip('should get past events', function(done) {
+    const core = createCore()
+    const { api, emitter } = core.start(config)
+
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
+
+    emitter.on('error', function(err) {
+      end(err)
+    })
+    emitter.on('wallet-error', function(err) {
+      end(new Error(err.message))
+    })
+
+    const abi = api.erc20.abi
+    api.metronome
+      .getContractAddress('METToken')
+      .then(contractAddress =>
+        api.explorer
+          .getPastEvents(abi, contractAddress, 'Transfer', {
+            ...blocksRange,
+            filter: { _from: address }
+          })
+          .then(function(events) {
+            events.should.be.an('array').lengthOf(1)
+            events[0].should.have.property('transactionHash')
+            events[0].should.have.nested.property('returnValues._from', address)
+            end()
+          })
+      )
+      .catch(end)
+  })
+
+  it.only('should emit past events', function(done) {
+    this.timeout(0)
+
+    const walletId = 'walletId'
+
+    const core = createCore()
+    const { api, emitter } = core.start(config)
+
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
+
+    let syncEnded = false
+    let stateChanged = false
+
+    function checkEnd() {
+      if (syncEnded && stateChanged) {
+        end()
+      }
+    }
+
+    emitter.on('error', function(err) {
+      end(err)
+    })
+    emitter.on('wallet-error', function(err) {
+      end(new Error(err.message))
+    })
+    emitter.on('wallet-state-changed', function(data) {
+      if (data[walletId].addresses[address].balance) {
+        return
+      }
+      data[walletId].addresses[address].should.have.nested
+        .property('transactions[0]')
+        .that.include.all.keys('transaction', 'receipt', 'meta')
+      // TODO check meta is parsed to native addresses
+      stateChanged = true
+      checkEnd()
+    })
+    emitter.on('coin-block', function() {
+      const { fromBlock, toBlock } = blocksRange
+      api.transactionsSyncer
+        .getPastEvents(fromBlock, toBlock, address)
+        .then(function() {
+          syncEnded = true
+          checkEnd()
+        })
+        .catch(end)
+    })
+
+    emitter.emit('open-wallets', {
+      activeWallet: walletId,
+      address
+    })
+  })
 }
 
 describe('Core E2E', function() {
@@ -222,6 +310,10 @@ describe('Core E2E', function() {
         symbol: 'ETH',
         wsApiUrl: process.env.ROPSTEN_NODE
       },
+      blocksRange: {
+        fromBlock: 6802000,
+        toBlock: 6802100
+      },
       receiptAddressFormatter: toLower,
       sendCoinDefaults: {
         gas: 21000,
@@ -243,6 +335,10 @@ describe('Core E2E', function() {
         nodeUrl: process.env.QTUMTEST_NODE,
         ratesUpdateMs: 5000,
         symbol: 'QTUM'
+      },
+      blocksRange: {
+        fromBlock: 485550,
+        toBlock: 485600
       },
       receiptAddressFormatter: identity,
       sendCoinDefaults: {

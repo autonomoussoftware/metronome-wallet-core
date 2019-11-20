@@ -30,8 +30,7 @@ function createPlugin() {
       api: {
         getBalance: coin.getBalance,
         getGasPrice: coin.getGasPrice,
-        // TODO implement
-        getPastEvents: () => Promise.resolve([]),
+        getPastEvents: coin.getPastEvents,
         getTransaction: coin.getTransaction,
         getTransactionReceipt: coin.getTransactionReceipt,
         getTransactions: indexer.getTransactions,

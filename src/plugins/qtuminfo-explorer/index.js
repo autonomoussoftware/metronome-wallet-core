@@ -64,8 +64,7 @@ function createPlugin() {
       api: {
         getBalance: httpApi.getAddressBalance,
         getGasPrice: httpApi.getMinGasPrice,
-        // TODO implement
-        getPastEvents: () => Promise.resolve([]),
+        getPastEvents: httpApi.getPastEvents(coin),
         getTokenBalance: httpApi.getAddressQrc20Balance,
         getTokensGasLimit: httpApi.getQrc20TransferGasLimit(
           erc20.abi,
