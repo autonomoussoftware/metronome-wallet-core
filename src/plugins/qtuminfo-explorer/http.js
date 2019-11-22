@@ -60,7 +60,8 @@ function createHttpApi(config) {
         const txOutput =
           txInput.address === address
             ? tx.outputs[0]
-            : tx.outputs.find(o => o.address === address)
+            : tx.outputs.find(o => o.address === address) ||
+              tx.outputs.find(o => o.receipt)
         return {
           blockHash: tx.blockHash,
           blockNumber: tx.blockHeight,
