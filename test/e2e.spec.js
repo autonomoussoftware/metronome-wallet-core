@@ -25,6 +25,8 @@ function addTests(fixtures) {
   } = fixtures
 
   it('should initialize, emit rates and blocks', function(done) {
+    this.timeout(240000)
+
     let blocksCount = 0
     let ratesCount = 0
 
@@ -179,7 +181,7 @@ function addTests(fixtures) {
     api.wallet.sendCoin(privateKey, transactionObject).catch(end)
   })
 
-  it.skip('should get past events', function(done) {
+  it('should get past events', function(done) {
     const core = createCore()
     const { api, emitter } = core.start(config)
 
@@ -214,7 +216,7 @@ function addTests(fixtures) {
       .catch(end)
   })
 
-  it.only('should emit past events', function(done) {
+  it('should emit past events', function(done) {
     this.timeout(0)
 
     const walletId = 'walletId'
