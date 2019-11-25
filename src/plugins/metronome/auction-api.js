@@ -1,28 +1,21 @@
 'use strict'
 
+const { createMetronome, createProvider } = require('metronome-sdk')
 const MetronomeContracts = require('metronome-contracts')
 
-function addAccount (web3, privateKey) {
-  web3.eth.accounts.wallet.create(0)
-    .add(web3.eth.accounts.privateKeyToAccount(privateKey))
-}
-
-function buyMet (web3, chain, logTransaction, metaParsers) {
-  const to = MetronomeContracts[chain].Auctions.address
-  return function (privateKey, { from, value, gas, gasPrice }) {
-    addAccount(web3, privateKey)
-    return web3.eth.getTransactionCount(from, 'pending')
-      .then(nonce =>
-        logTransaction(
-          web3.eth.sendTransaction({ from, to, value, gas, gasPrice, nonce }),
-          from,
-          metaParsers.auction({ returnValues: { refund: '0' } })
-        )
-      )
+function buyMet(getSigningLib, logTransaction, metaParsers) {
+  return function(privateKey, { from, value, gas, gasPrice }) {
+    const signingLib = getSigningLib(privateKey)
+    const met = createMetronome(createProvider.fromLib(signingLib))
+    return logTransaction(
+      met.buyMet(value, { gas, gasPrice }),
+      from,
+      metaParsers.auction({ returnValues: { refund: '0' } })
+    )
   }
 }
 
-function estimateAuctionGas (web3, chain) {
+function estimateAuctionGas(web3, chain) {
   const to = MetronomeContracts[chain].Auctions.address
   return ({ from, value }) => web3.eth.estimateGas({ from, to, value })
 }

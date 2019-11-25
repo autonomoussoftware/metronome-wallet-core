@@ -1,7 +1,5 @@
 'use strict'
 
-const MetronomeContracts = require('metronome-contracts')
-
 const auctionMetaParser = ({ returnValues }) => ({
   metronome: {
     auction: true
@@ -9,12 +7,8 @@ const auctionMetaParser = ({ returnValues }) => ({
   returnedValue: returnValues.refund
 })
 
-function getEventDataCreator (chain) {
-  const {
-    abi,
-    address: contractAddress,
-    birthblock: minBlock
-  } = MetronomeContracts[chain].Auctions
+function getEventDataCreator({ Auctions }) {
+  const { abi, address: contractAddress, birthblock: minBlock } = Auctions
 
   return [
     address => ({

@@ -190,7 +190,7 @@ function createPlugin() {
                     address: contractAddress,
                     event,
                     returnValues: coin.parseReturnValues(
-                    returnValues,
+                      returnValues,
                       eventAbi
                     ),
                     transactionHash: hash

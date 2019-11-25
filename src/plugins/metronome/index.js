@@ -1,9 +1,10 @@
 'use strict'
 
 const { createMetronome, createProvider } = require('metronome-sdk')
+const metSdk = require('metronome-sdk')
 // const MetronomeContracts = require('metronome-contracts')
 
-// const { buyMet, estimateAuctionGas } = require('./auction-api')
+const { buyMet } = require('./auction-api')
 // const {
 //   convertCoin,
 //   convertMet,
@@ -20,7 +21,7 @@ const {
   //   importMet,
   sendMet
 } = require('./token-api')
-// const auctionEvents = require('./auction-events')
+const auctionEvents = require('./auction-events')
 // const converterEvents = require('./converter-events')
 // const getAttestationThreshold = require('./validator-status')
 // const getChainHopStartTime = require('./porter-status')
@@ -42,37 +43,39 @@ function createPlugin() {
    * @param {object} params.plugins All other plugins.
    * @returns {{api:object,events:string[],name:string}} The plugin API.
    */
-  function start({ eventBus, plugins }) {
+  function start({ config, eventBus, plugins }) {
     const { erc20, coin, tokensBalance, transactionsList, wallet } = plugins
-    // const { chainId, chainType, gasOverestimation } = config
-    // const { eth, explorer, qtum, tokens } = plugins
+    const { chainId, chainType } = config
+    const { transactionsSyncer } = plugins
 
     const metProvider = createProvider.fromLib(coin.lib)
     const met = createMetronome(metProvider)
 
+    function withMetContracts(fn) {
+      const metContractsPromise = met.getContracts()
+      return metContractsPromise.then(fn)
+    }
+
     // Register MET token
-    met
-      .getContracts()
-      .then(function({ METToken }) {
-        tokensBalance.registerToken(METToken.options.address, {
-          decimals: 18,
-          name: 'Metronome',
-          symbol: 'MET'
-        })
+    withMetContracts(function({ METToken }) {
+      tokensBalance.registerToken(METToken.options.address, {
+        decimals: 18,
+        name: 'Metronome',
+        symbol: 'MET'
       })
-      .catch(function(err) {
-        // TODO emit wallet error
-        console.log('Could not register token', err.message)
-      })
+    }).catch(function(err) {
+      // TODO emit wallet error
+      console.log('Could not register token', err.message)
+    })
 
     // Register all MET events
-    // const events = []
-    // events
-    //   .concat(auctionEvents.getEventDataCreator(chainId))
-    //   .concat(converterEvents.getEventDataCreator(chainId))
-    //   .concat(porterEvents.getEventDataCreator(chainId))
-    //   .concat(validatorEvents.getEventDataCreator(chainId))
-    //   .forEach(explorer.registerEvent)
+    const metContracts = metSdk.getContracts(chainType, chainId)
+    ;[]
+      .concat(auctionEvents.getEventDataCreator(metContracts))
+      //   .concat(converterEvents.getEventDataCreator(metContracts))
+      //   .concat(porterEvents.getEventDataCreator(metContracts))
+      //   .concat(validatorEvents.getEventDataCreator(metContracts))
+      .forEach(transactionsSyncer.registerEvent)
 
     // Start emitting MET status
     const emitMetronomeStatus = () =>
@@ -127,13 +130,13 @@ function createPlugin() {
 
     // Collect meta parsers
     const metaParsers = Object.assign(
-      //   {
-      //     auction: auctionEvents.auctionMetaParser,
-      //     converter: converterEvents.converterMetaParser,
-      //     export: porterEvents.exportMetaParser,
-      //     import: porterEvents.importMetaParser,
-      //     importRequest: porterEvents.importRequestMetaParser
-      //   },
+      {
+        auction: auctionEvents.auctionMetaParser
+        //     converter: converterEvents.converterMetaParser,
+        //     export: porterEvents.exportMetaParser,
+        //     import: porterEvents.importMetaParser,
+        //     importRequest: porterEvents.importRequestMetaParser
+      },
       erc20.metaParsers
     )
 
@@ -147,13 +150,12 @@ function createPlugin() {
     return {
       api: {
         getContractAddress: name =>
-          met.getContracts().then(contracts => contracts[name].options.address),
-        // buyMetronome: buyMet(
-        //   web3,
-        //   chainId,
-        //   transactionsList.logTransaction,
-        //   metaParsers
-        // ),
+          withMetContracts(contracts => contracts[name].options.address),
+        buyMetronome: buyMet(
+          wallet.getSigningLib,
+          transactionsList.logTransaction,
+          metaParsers
+        ),
         // convertCoin: convertCoin(
         //   web3,
         //   chainId,
@@ -187,6 +189,7 @@ function createPlugin() {
         //   transactionsList.logTransaction,
         //   metaParsers
         // ),
+        // getSendMetGasLimit: // TODO
         sendMet: sendMet(
           wallet.getSigningLib,
           transactionsList.logTransaction,

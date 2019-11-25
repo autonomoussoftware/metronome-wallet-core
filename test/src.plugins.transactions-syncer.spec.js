@@ -468,7 +468,7 @@ describe('Transactions syncer plugin', function() {
 
       const { api } = transactionSyncer.start({ config, eventBus, plugins })
 
-      getEventDataCreator(chain).map(api.registerEvent)
+      getEventDataCreator({ Auctions: { birthblock } }).map(api.registerEvent)
 
       api
         .refreshAllTransactions(randomAddress())
