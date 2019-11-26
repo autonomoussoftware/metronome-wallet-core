@@ -75,11 +75,10 @@ function createPlugin() {
         getTransactionReceipt: httpApi.getTransactionReceipt,
         getTransactionStream: socketApi.getTransactionStream,
         getTransactions: httpApi.getTransactions,
-        subscribeToEvents: coin.subscribeToEvents,
-        registerEvent() {
-          // TODO implement
-          console.warn('NOT IMPLEMENTED')
-        }
+        subscribeToEvents: coin.subscribeToEvents
+        // registerEvent() {
+        //   console.warn('NOT IMPLEMENTED')
+        // }
       },
       events: [
         'coin-block',

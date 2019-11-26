@@ -2,11 +2,11 @@
 
 const debug = require('debug')('metronome-wallet:core:qtum-wallet:api')
 
-const toPromiEvent = require('./to-promievent')
-
-function createApi(walletRPCProvider, qtumRPC, logTransaction) {
+function createApi(walletRPCProvider, qtumRPC, logTransaction, toPromiEvent) {
   // Qtum does not require gas to send QTUM coins.
   const getGasLimit = () => Promise.resolve('0')
+
+  const createAddress = seed => walletRPCProvider.fromSeed(seed).wallet.address
 
   function getSigningLib(privateKey) {
     const signingProvider = walletRPCProvider.fromPrivateKey(privateKey)
@@ -19,11 +19,12 @@ function createApi(walletRPCProvider, qtumRPC, logTransaction) {
     debug('Sending Coin', to, value, feeRate)
     const { wallet } = getSigningLib(privateKey).walletRPCProvider
     const sendPromise = wallet.send(to, Number.parseInt(value), { feeRate })
-    const promiEvent = toPromiEvent(qtumRPC, sendPromise)
+    const promiEvent = toPromiEvent(sendPromise)
     return logTransaction(promiEvent, from)
   }
 
   return {
+    createAddress,
     getGasLimit,
     getSigningLib,
     sendCoin

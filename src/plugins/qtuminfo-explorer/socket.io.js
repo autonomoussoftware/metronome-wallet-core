@@ -1,8 +1,7 @@
 'use strict'
 
-const debug = require('debug')('metronome-wallet:core:qtuminfo-explorer:socket')
 const { EventEmitter } = require('events')
-
+const debug = require('debug')('metronome-wallet:core:qtuminfo-explorer:socket')
 const io = require('socket.io-client')
 const pRetry = require('p-retry')
 

@@ -3,11 +3,11 @@
 const debug = require('debug')('metronome-wallet:core:eth:web3')
 const Web3 = require('web3')
 
-function createWeb3(config, emit) {
+function createWeb3(wsApiUrl, web3Timeout, emit) {
   const web3 = new Web3(
-    new Web3.providers.WebsocketProvider(config.wsApiUrl, {
+    new Web3.providers.WebsocketProvider(wsApiUrl, {
       autoReconnect: true,
-      timeout: config.web3Timeout
+      timeout: web3Timeout
     })
   )
 

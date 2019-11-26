@@ -10,7 +10,7 @@ const createStream = require('./stream')
  *
  * @returns {({ start: Function, stop: () => void})} The plugin instance.
  */
-function createPlugin () {
+function createPlugin() {
   let dataStream
 
   /**
@@ -19,13 +19,27 @@ function createPlugin () {
    * @param {object} options Start options.
    * @returns {{ events: string[] }} The instance details.
    */
-  function start ({ config, eventBus }) {
+  function start({ config, eventBus }) {
     debug('Starting')
 
     const { ratesUpdateMs, symbol } = config
 
+    const emit = {
+      price(priceData) {
+        eventBus.emit('coin-price-updated', priceData)
+      },
+      walletError(message, err) {
+        debug('Wallet error: %s', err.message)
+        eventBus.emit('wallet-error', {
+          inner: err,
+          message,
+          meta: { plugin: 'rates' }
+        })
+      }
+    }
+
     const getRate = () =>
-      getExchangeRate(`${symbol}:USD`).then(function (rate) {
+      getExchangeRate(`${symbol}:USD`).then(function(rate) {
         if (typeof rate !== 'number') {
           throw new Error(`No exchange rate retrieved for ${symbol}`)
         }
@@ -33,22 +47,12 @@ function createPlugin () {
       })
 
     dataStream = createStream(getRate, ratesUpdateMs)
-
-    dataStream.on('data', function (price) {
-      debug('Coin price received')
-
+    dataStream.on('data', function(price) {
       const priceData = { token: symbol, currency: 'USD', price }
-      eventBus.emit('coin-price-updated', priceData)
+      emit.price(priceData)
     })
-
-    dataStream.on('error', function (err) {
-      debug('Data stream error')
-
-      eventBus.emit('wallet-error', {
-        inner: err,
-        message: `Could not get exchange rate for ${symbol}`,
-        meta: { plugin: 'rates' }
-      })
+    dataStream.on('error', function(err) {
+      emit.walletError(`Could not get exchange rate for ${symbol}`, err)
     })
 
     return {
@@ -59,7 +63,7 @@ function createPlugin () {
   /**
    * Stop the plugin instance.
    */
-  function stop () {
+  function stop() {
     debug('Stopping')
 
     dataStream.destroy()

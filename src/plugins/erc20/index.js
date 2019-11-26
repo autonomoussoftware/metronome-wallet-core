@@ -8,21 +8,17 @@ const events = require('./events')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   /**
    * Start the plugin.
    *
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start () {
+  function start() {
     return {
       api: {
         abi,
-        getEventDataCreators: events.getEventDataCreators,
-        metaParsers: {
-          approval: events.approvalMetaParser,
-          transfer: events.transferMetaParser
-        }
+        ...events
       },
       name: 'erc20'
     }
@@ -31,7 +27,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {}
+  function stop() {}
 
   return { start, stop }
 }

@@ -7,24 +7,27 @@ const debug = require('debug')('metronome-wallet:core:coin-balance')
  *
  * @returns {CorePlugin} The plugin.
  */
-function createPlugin () {
+function createPlugin() {
   /**
    * Start the plugin.
    *
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start ({ config, eventBus, plugins }) {
+  function start({ config, eventBus, plugins }) {
     debug('Starting')
+
+    const { symbol } = config
+    const { explorer } = plugins
 
     let _activeWallet
     const addresses = {}
 
     const emit = {
-      balance (address) {
-        plugins.explorer
+      balance(address) {
+        explorer
           .getBalance(address)
-          .then(function (balance) {
+          .then(function(balance) {
             eventBus.emit('wallet-state-changed', {
               [_activeWallet]: {
                 addresses: {
@@ -35,17 +38,17 @@ function createPlugin () {
               }
             })
           })
-          .catch(function (err) {
+          .catch(function(err) {
             eventBus.emit('wallet-error', {
               inner: err,
-              message: `Could not get ${config.symbol} balance`,
+              message: `Could not get ${symbol} balance`,
               meta: { plugin: 'wallet' }
             })
           })
       }
     }
 
-    eventBus.on('open-wallets', function ({ address, activeWallet }) {
+    eventBus.on('open-wallets', function({ address, activeWallet }) {
       debug('Opening wallets')
 
       addresses[activeWallet] = addresses[activeWallet] || []
@@ -54,9 +57,9 @@ function createPlugin () {
 
       emit.balance(address)
     })
-    eventBus.on('coin-tx', function () {
+    eventBus.on('coin-tx', function() {
       if (_activeWallet) {
-        addresses[_activeWallet].forEach(function (address) {
+        addresses[_activeWallet].forEach(function(address) {
           emit.balance(address)
         })
       }
@@ -70,7 +73,7 @@ function createPlugin () {
   /**
    * Stop the plugin.
    */
-  function stop () {}
+  function stop() {}
 
   return {
     start,

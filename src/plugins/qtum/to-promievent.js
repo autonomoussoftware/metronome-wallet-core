@@ -38,26 +38,28 @@ function pollForReceipt(qtumRPC, promiEvent, txid) {
   }, 1000)
 }
 
-function toPromiEvent(qtumRPC, sendPromise) {
-  const promiEvent = new PromiEvent()
+function createToPromiEvent(qtumRPC) {
+  return function(sendPromise) {
+    const promiEvent = new PromiEvent()
 
-  sendPromise
-    .then(function(tx) {
-      const { status, txid, message } = tx
+    sendPromise
+      .then(function(tx) {
+        const { status, txid, message } = tx
 
-      if (status) {
-        throw new Error(message)
-      }
-      promiEvent.eventEmitter.emit('transactionHash', txid)
+        if (status) {
+          throw new Error(message)
+        }
+        promiEvent.eventEmitter.emit('transactionHash', txid)
 
-      pollForReceipt(qtumRPC, promiEvent, txid)
-    })
-    .catch(function(err) {
-      promiEvent.eventEmitter.emit('error', err)
-      promiEvent.reject(err)
-    })
+        pollForReceipt(qtumRPC, promiEvent, txid)
+      })
+      .catch(function(err) {
+        promiEvent.eventEmitter.emit('error', err)
+        promiEvent.reject(err)
+      })
 
-  return promiEvent.eventEmitter
+    return promiEvent.eventEmitter
+  }
 }
 
-module.exports = toPromiEvent
+module.exports = createToPromiEvent

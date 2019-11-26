@@ -52,6 +52,8 @@ const getEventDataCreators = contractAddress => [
 
 module.exports = {
   getEventDataCreators,
-  approvalMetaParser,
-  transferMetaParser
+  metaParsers: {
+    approval: approvalMetaParser,
+    transfer: transferMetaParser
+  }
 }

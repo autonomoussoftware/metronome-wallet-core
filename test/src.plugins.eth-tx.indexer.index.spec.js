@@ -4,7 +4,7 @@ const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 const nock = require('nock')
 
-const createIndexer = require('../src/plugins/explorer/eth-tx-indexer')
+const createPlugin = require('../src/plugins/eth-tx-indexer')
 
 const { randomAddress, randomTxId } = require('./utils')
 
@@ -26,7 +26,7 @@ describe('Indexer', function() {
       useNativeCookieJar: true
     }
     const eventBus = null
-    const indexer = createIndexer(config, eventBus)
+    const { api } = createPlugin().start({ config, eventBus })
 
     const address = randomAddress()
     const transactions = [randomTxId()]
@@ -36,7 +36,7 @@ describe('Indexer', function() {
       .query(() => true)
       .reply(200, transactions)
 
-    return indexer.getTransactions(0, 1, address).then(function(list) {
+    return api.getTransactions(0, 1, address).then(function(list) {
       list.should.deep.equals(transactions)
       scope.done()
     })
@@ -48,7 +48,7 @@ describe('Indexer', function() {
       useNativeCookieJar: true
     }
     const eventBus = null
-    const indexer = createIndexer(config, eventBus)
+    const { api } = createPlugin().start({ config, eventBus })
 
     const address = randomAddress()
     const transactions = [randomTxId()]
@@ -58,7 +58,7 @@ describe('Indexer', function() {
       .query(q => q.address === address)
       .reply(200, { status: '1', result: transactions.map(hash => ({ hash })) })
 
-    return indexer.getTransactions(0, 1, address).then(function(list) {
+    return api.getTransactions(0, 1, address).then(function(list) {
       list.should.deep.equals(transactions)
       scope.done()
     })
@@ -70,7 +70,7 @@ describe('Indexer', function() {
       useNativeCookieJar: true
     }
     const eventBus = null
-    const indexer = createIndexer(config, eventBus)
+    const { api } = createPlugin().start({ config, eventBus })
 
     const address = randomAddress()
     const message = 'Error message'
@@ -80,7 +80,7 @@ describe('Indexer', function() {
       .query(q => q.address === address)
       .reply(200, { status: '0', result: [], message })
 
-    return indexer
+    return api
       .getTransactions(0, 1, address)
       .should.be.rejectedWith(message)
       .then(function() {

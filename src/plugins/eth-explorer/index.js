@@ -1,8 +1,6 @@
 'use strict'
 
-const debug = require('debug')('metronome-wallet:core:explorer')
-
-const createIndexer = require('./eth-tx-indexer')
+const debug = require('debug')('metronome-wallet:core:eth-explorer')
 
 /**
  * Create the plugin.
@@ -10,21 +8,16 @@ const createIndexer = require('./eth-tx-indexer')
  * @returns {CorePlugin} The plugin.
  */
 function createPlugin() {
-  let indexer
-  let syncer
-
   /**
    * Start the plugin.
    *
    * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
-  function start({ config, eventBus, plugins }) {
+  function start({ plugins }) {
     debug('Starting')
 
-    const { coin } = plugins
-
-    indexer = createIndexer(config, eventBus)
+    const { coin, indexer } = plugins
 
     return {
       api: {
@@ -37,7 +30,7 @@ function createPlugin() {
         getTransactionStream: indexer.getTransactionStream,
         subscribeToEvents: coin.subscribeToEvents
       },
-      events: ['indexer-connection-status-changed', 'wallet-error'],
+      events: [],
       name: 'explorer'
     }
   }
@@ -45,10 +38,7 @@ function createPlugin() {
   /**
    * Stop the plugin.
    */
-  function stop() {
-    indexer = indexer && indexer.disconnect()
-    syncer = syncer && syncer.stop()
-  }
+  function stop() {}
 
   return {
     start,

@@ -73,6 +73,7 @@ function createPlugin() {
       debug('Registering token', contractAddress, meta)
 
       if (registeredTokens.find(t => t.address === contractAddress)) {
+        debug('Already registered')
         return
       }
 

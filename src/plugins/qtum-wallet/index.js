@@ -27,12 +27,12 @@ function createPlugin() {
 
     return {
       api: {
-        createAddress: seed => walletRPCProvider.fromSeed(seed).wallet.address,
         createPrivateKey: wallet.getPrivateKey,
         ...createApi(
           walletRPCProvider,
           coin.lib.qtumRPC,
-          transactionsList.logTransaction
+          transactionsList.logTransaction,
+          coin.toPromiEvent
         )
       },
       name: 'wallet'
