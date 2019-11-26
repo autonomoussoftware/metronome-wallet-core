@@ -1,8 +1,9 @@
 'use strict'
 
 const { identity } = require('lodash')
-const { QtumRPC } = require('qtumjs')
+const { Contract, QtumRPC } = require('qtumjs')
 const debug = require('debug')('metronome-wallet:core:qtum')
+const EventEmitter = require('events')
 const qtumjslib = require('qtumjs-lib')
 
 const checkChain = require('./check-chain')
@@ -70,6 +71,26 @@ function createPlugin() {
             )
           })
           return returnValues
+        },
+        subscribeToEvents(abi, contractAddress, eventName, options) {
+          debug('Subscribing to %s@%s', eventName, contractAddress)
+          const contract = new Contract(qtumRPC, {
+            abi,
+            address: contractAddress
+          })
+          const emitter = new EventEmitter()
+          const logEmitter = contract
+            .logEmitter(options)
+            .on(eventName, function(event) {
+              emitter.emit('data', event)
+            })
+            .on('error', function(err) {
+              emitter.emit('error', err)
+            })
+          emitter.unsubscribe = function() {
+            logEmitter.removeAllListeners()
+          }
+          return emitter
         },
         toChecksumAddress: identity
       },

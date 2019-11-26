@@ -34,7 +34,8 @@ function createPlugin() {
         getTransaction: coin.getTransaction,
         getTransactionReceipt: coin.getTransactionReceipt,
         getTransactions: indexer.getTransactions,
-        getTransactionStream: indexer.getTransactionStream
+        getTransactionStream: indexer.getTransactionStream,
+        subscribeToEvents: coin.subscribeToEvents
       },
       events: ['indexer-connection-status-changed', 'wallet-error'],
       name: 'explorer'

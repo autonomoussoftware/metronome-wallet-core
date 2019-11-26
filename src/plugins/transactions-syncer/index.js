@@ -15,6 +15,8 @@ const createEventsRegistry = require('./events')
  * @returns {CorePlugin} The plugin.
  */
 function createPlugin() {
+  const subscriptions = []
+
   /**
    * Start the plugin.
    *
@@ -206,6 +208,7 @@ function createPlugin() {
       })
     }
 
+    // TODO check why the promise is resolving before the refresh ends
     function refreshAllTransactions(address) {
       return gotBestBlockPromise.then(() =>
         Promise.all([
@@ -233,9 +236,6 @@ function createPlugin() {
           metaParser
         } = registration(address)
 
-        // TODO implement this in the explorer plugin
-        // const contract = new web3.eth.Contract(abi, contractAddress)
-
         // // Ignore missing events
         // if (!contract.events[eventName]) {
         //   debug('Could not subscribe: event not found', eventName)
@@ -243,20 +243,21 @@ function createPlugin() {
         // }
 
         // Get past events and subscribe to incoming events
-        // const emitter = contract.events[eventName]({ fromBlock, filter })
-        //   .on('data', transactionsList.addEvent(address, metaParser))
-        //   .on('changed', transactionsList.addEvent(address, metaParser))
-        //   .on('error', function(err) {
-        //     debug('Shall resync events on next block')
-        //     shallResync = true
-        //     eventBus.emit('wallet-error', {
-        //       inner: err,
-        //       message: `Subscription to event ${eventName} failed`,
-        //       meta: { plugin: 'explorer' }
-        //     })
-        //   })
-
-        // subscriptions.push(emitter)
+        const subscription = explorer.subscribeToEvents(
+          abi,
+          contractAddress,
+          eventName,
+          { fromBlock, filter }
+        )
+        subscription
+          .on('data', transactionsList.addEvent(address, metaParser))
+          .on('changed', transactionsList.addEvent(address, metaParser))
+          .on('error', function(err) {
+            debug('Shall resync events on next block')
+            shallResync = true
+            emit.walletError(`Subscription to event ${eventName} failed`, err)
+          })
+        subscriptions.push(subscription)
 
         // Resync on new block or save it as best sync block
         eventBus.on('coin-block', function({ number }) {
@@ -276,11 +277,7 @@ function createPlugin() {
               })
               .catch(function(err) {
                 shallResync = true
-                eventBus.emit('wallet-error', {
-                  inner: err,
-                  message: `Failed to resync event ${eventName}`,
-                  meta: { plugin: 'explorer' }
-                })
+                emit.walletError(`Failed to resync event ${eventName}`, err)
               })
               .then(function() {
                 resyncing = false
@@ -333,7 +330,12 @@ function createPlugin() {
   /**
    * Stop the plugin.
    */
-  function stop() {}
+  function stop() {
+    while (subscriptions.length) {
+      const subscription = subscriptions.shift()
+      subscription.unsubscribe()
+    }
+  }
 
   return {
     start,
