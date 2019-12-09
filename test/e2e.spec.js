@@ -271,6 +271,47 @@ function addTests(fixtures) {
       address
     })
   })
+
+  it('should estimate the conversion from coins to MET', function(done) {
+    const core = createCore()
+    const { api } = core.start(config)
+
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
+
+    const value = '10000000000'
+    api.metronome
+      .getConvertCoinEstimate({ value })
+      .then(function({ result }) {
+        debug('Estimated MET %s', result)
+        result.should.be.a('string').not.equal('0')
+        end()
+      })
+      .catch(end)
+  })
+
+  it('should estimate the gas to convert coins to MET', function(done) {
+    const core = createCore()
+    const { api } = core.start(config)
+
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
+
+    const from = address
+    const value = '10000000000'
+    api.metronome
+      .getConvertCoinGasLimit({ from, value })
+      .then(function({ gasLimit }) {
+        debug('Estimated gas %s', gasLimit)
+        gasLimit.should.be.a('number').not.equal('0')
+        end()
+      })
+      .catch(end)
+  })
 }
 
 describe('Core E2E', function() {

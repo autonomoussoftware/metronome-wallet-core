@@ -5,14 +5,14 @@ const metSdk = require('metronome-sdk')
 // const MetronomeContracts = require('metronome-contracts')
 
 const { buyMet, estimateAuctionGas } = require('./auction-api')
-// const {
-//   convertCoin,
-//   convertMet,
-//   estimateCoinToMetGas,
-//   estimateMetToCoinGas,
-//   getCoinToMetEstimate,
-//   getMetToMetEstimate
-// } = require('./converter-api')
+const {
+  //   convertCoin,
+  //   convertMet,
+  estimateCoinToMetGas,
+  //   estimateMetToCoinGas,
+  getCoinToMetEstimate,
+  getMetToCoinEstimate
+} = require('./converter-api')
 // const { getExportMetFee, getMerkleRoot } = require('./porter-api')
 const {
   //   estimateExportMetGas,
@@ -179,9 +179,9 @@ function createPlugin() {
         //   metaParsers
         // ),
         getAuctionGasLimit: over(estimateAuctionGas(coin)),
-        // getConvertCoinEstimate: getCoinToMetEstimate(web3, chainId),
-        // getConvertCoinGasLimit: over(estimateCoinToMetGas(web3, chainId)),
-        // getConvertMetEstimate: getMetToMetEstimate(web3, chainId),
+        getConvertCoinEstimate: getCoinToMetEstimate(coin),
+        getConvertCoinGasLimit: over(estimateCoinToMetGas(coin)),
+        getConvertMetEstimate: getMetToCoinEstimate(coin),
         // getConvertMetGasLimit: over(estimateMetToCoinGas(web3, chainId)),
         // importMet: importMet(
         //   web3,
