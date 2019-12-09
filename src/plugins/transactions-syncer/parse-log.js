@@ -6,7 +6,7 @@ const hexPrefixed = str => (str.startsWith('0x') ? str : `0x${str}`)
 
 const tryParseEventLog = eventsRegistry => (log, address) =>
   eventsRegistry
-    .getAll()
+    .getAllRegisteredEvents()
     .map(function(registration) {
       const {
         abi,
@@ -45,11 +45,12 @@ const tryParseEventLog = eventsRegistry => (log, address) =>
         eventAbi,
         filter,
         metaParser,
-        parsed: Object.assign({}, log, {
+        parsed: {
+          ...log,
           event: eventName,
           returnValues,
           signature
-        })
+        }
       }
     })
     .filter(data => !!data)

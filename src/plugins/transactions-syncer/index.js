@@ -46,6 +46,7 @@ function createPlugin() {
     let bestBlock
 
     const eventsRegistry = createEventsRegistry()
+    const tryParseEventLog = createTryParseEventLog(eventsRegistry)
 
     function subscribeCoinTransactions(fromBlock, address) {
       let shallResync = false
@@ -102,128 +103,9 @@ function createPlugin() {
         })
     }
 
-    function getPastEvents(fromBlock, toBlock, address) {
-      debug('Getting past events', address)
-      return pAll(
-        eventsRegistry
-          .getAll()
-          .map(function(registration) {
-            const {
-              contractAddress,
-              abi,
-              eventName,
-              filter,
-              metaParser,
-              minBlock = 0
-            } = registration(address)
-
-            // TODO implement this in the explorer plugin
-            // const contract = new web3.eth.Contract(abi, contractAddress)
-
-            // // Ignore missing events
-            // if (!contract.events[eventName]) {
-            //   debug(`Could not get past events for ${eventName}`)
-            //   return null
-            // }
-
-            return () =>
-              explorer
-                .getPastEvents(abi, contractAddress, eventName, {
-                  fromBlock: Math.max(fromBlock, minBlock),
-                  toBlock: Math.max(toBlock, minBlock),
-                  filter
-                })
-                .then(function(events) {
-                  debug(`${events.length} past ${eventName} events retrieved`)
-                  return Promise.all(
-                    events.map(transactionsList.addEvent(address, metaParser))
-                  )
-                })
-          })
-          .filter(identity),
-        { concurrency: 5 }
-      )
-    }
-
-    function refreshTransaction(hash, address) {
-      debug('Refreshing %s', hash)
-      return Promise.all([
-        explorer.getTransactionReceipt(hash, address),
-        coin.getHexAddress(address)
-      ]).then(function([receipt, addressHex]) {
-        const pending = []
-
-        // Skip unconfirmed transactions
-        if (!receipt || !isNumber(receipt.blockNumber)) {
-          return pending
-        }
-
-        // Refresh transaction
-        if (
-          coin.toChecksumAddress(receipt.from) === address ||
-          coin.toChecksumAddress(receipt.to) === address
-        ) {
-          debug('Pushing tx %s', hash)
-          pending.push(transactionsList.addTransaction(address)(hash).promise)
-        }
-
-        // Refresh transaction events
-        if (receipt.logs && receipt.logs.length) {
-          const tryParseEventLog = createTryParseEventLog(eventsRegistry)
-
-          receipt.logs.forEach(function(log) {
-            const filterAddress = toChecksumAddress(addressHex)
-            tryParseEventLog(log, filterAddress).forEach(function(parsedLog) {
-              const {
-                contractAddress,
-                eventAbi,
-                filter,
-                metaParser,
-                parsed: { event, returnValues }
-              } = parsedLog
-
-              if (isMatch(returnValues, filter)) {
-                debug('Pushing event %s of tx %s', event, hash)
-                pending.push(
-                  transactionsList.addEvent(
-                    address,
-                    metaParser
-                  )({
-                    address: contractAddress,
-                    event,
-                    returnValues: coin.parseReturnValues(
-                      returnValues,
-                      eventAbi
-                    ),
-                    transactionHash: hash
-                  })
-                )
-              }
-            })
-          })
-        }
-
-        debug('Waiting on pending txs')
-        return Promise.all(pending)
-      })
-    }
-
-    // TODO check why the promise is resolving before the refresh ends
-    function refreshAllTransactions(address) {
-      return gotBestBlockPromise.then(() =>
-        Promise.all([
-          getPastCoinTransactions(0, bestBlock, address),
-          getPastEvents(0, bestBlock, address)
-        ]).then(function([syncedBlock]) {
-          bestBlock = syncedBlock
-          return syncedBlock
-        })
-      )
-    }
-
     // TODO fix
     function subscribeEvents(fromBlock, address) {
-      eventsRegistry.getAll().forEach(function(registration) {
+      eventsRegistry.getAllRegisteredEvents().forEach(function(registration) {
         let shallResync = false
         let resyncing = false
         let bestSyncBlock = fromBlock
@@ -290,21 +172,129 @@ function createPlugin() {
       })
     }
 
-    function syncTransactions(fromBlock, address) {
-      return gotBestBlockPromise
-        .then(function() {
-          debug('Syncing', fromBlock, bestBlock)
-          subscribeCoinTransactions(bestBlock, address)
-          subscribeEvents(bestBlock, address)
-          return Promise.all([
-            getPastCoinTransactions(fromBlock, bestBlock, address),
-            getPastEvents(fromBlock, bestBlock, address)
-          ])
-        })
-        .then(function([syncedBlock]) {
+    function getPastEvents(fromBlock, toBlock, address) {
+      debug('Getting past events', address)
+      return pAll(
+        eventsRegistry
+          .getAllRegisteredEvents()
+          .map(function(registration) {
+            const {
+              contractAddress,
+              abi,
+              eventName,
+              filter,
+              metaParser,
+              minBlock = 0
+            } = registration(address)
+
+            // TODO implement this in the explorer plugin
+            // const contract = new web3.eth.Contract(abi, contractAddress)
+
+            // // Ignore missing events
+            // if (!contract.events[eventName]) {
+            //   debug(`Could not get past events for ${eventName}`)
+            //   return null
+            // }
+
+            return () =>
+              explorer
+                .getPastEvents(abi, contractAddress, eventName, {
+                  fromBlock: Math.max(fromBlock, minBlock),
+                  toBlock: Math.max(toBlock, minBlock),
+                  filter
+                })
+                .then(function(events) {
+                  debug(`${events.length} past ${eventName} events retrieved`)
+                  return Promise.all(
+                    events.map(transactionsList.addEvent(address, metaParser))
+                  )
+                })
+          })
+          .filter(identity),
+        { concurrency: 5 }
+      )
+    }
+
+    function refreshTransaction(hash, address) {
+      debug('Refreshing %s', hash)
+      return Promise.all([
+        explorer.getTransactionReceipt(hash, address),
+        coin.getHexAddress(address)
+      ]).then(function([receipt, addressHex]) {
+        const pending = []
+
+        // Skip unconfirmed transactions
+        if (!receipt || !isNumber(receipt.blockNumber)) {
+          return pending
+        }
+
+        // Refresh transaction
+        if (
+          coin.toChecksumAddress(receipt.from) === address ||
+          coin.toChecksumAddress(receipt.to) === address
+        ) {
+          debug('Pushing tx %s', hash)
+          pending.push(transactionsList.addTransaction(address)(hash).promise)
+        }
+
+        // Refresh transaction events
+        if (receipt.logs && receipt.logs.length) {
+          receipt.logs.forEach(function(log) {
+            const filterAddress = toChecksumAddress(addressHex)
+            tryParseEventLog(log, filterAddress).forEach(function(parsedLog) {
+              const {
+                contractAddress,
+                eventAbi,
+                filter,
+                metaParser,
+                parsed: { event, returnValues }
+              } = parsedLog
+
+              if (isMatch(returnValues, filter)) {
+                debug('Pushing event %s of tx %s', event, hash)
+                pending.push(
+                  transactionsList.addEvent(
+                    address,
+                    metaParser
+                  )({
+                    address: contractAddress,
+                    event,
+                    returnValues: coin.parseReturnValues(
+                      returnValues,
+                      eventAbi
+                    ),
+                    transactionHash: hash
+                  })
+                )
+              }
+            })
+          })
+        }
+
+        debug('Waiting on pending txs')
+        return Promise.all(pending)
+      })
+    }
+
+    function refreshAllTransactions(address, fromBlock = 0) {
+      return gotBestBlockPromise.then(() =>
+        Promise.all([
+          getPastCoinTransactions(fromBlock, bestBlock, address),
+          getPastEvents(fromBlock, bestBlock, address)
+        ]).then(function([syncedBlock]) {
           bestBlock = syncedBlock
           return syncedBlock
         })
+      )
+    }
+
+    function syncTransactions(fromBlock, address) {
+      return gotBestBlockPromise.then(function() {
+        debug('Syncing', fromBlock, bestBlock)
+        subscribeCoinTransactions(bestBlock, address)
+        subscribeEvents(bestBlock, address)
+        return refreshAllTransactions(address, fromBlock)
+      })
     }
 
     eventBus.once('coin-block', function(header) {
@@ -317,10 +307,11 @@ function createPlugin() {
       api: {
         getPastCoinTransactions,
         getPastEvents,
-        registerEvent: eventsRegistry.register,
-        refreshTransaction,
         refreshAllTransactions,
-        syncTransactions
+        refreshTransaction,
+        syncTransactions,
+        tryParseEventLog,
+        ...eventsRegistry
       },
       events: ['wallet-error'],
       name: 'transactionsSyncer'

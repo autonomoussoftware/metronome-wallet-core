@@ -1,11 +1,11 @@
 'use strict'
 
-function createEventsRegistry () {
+function createEventsRegistry() {
   const registeredEvents = []
 
   return {
-    getAll: () => registeredEvents,
-    register: registration => registeredEvents.push(registration)
+    getAllRegisteredEvents: () => registeredEvents,
+    registerEvent: registration => registeredEvents.push(registration)
   }
 }
 
