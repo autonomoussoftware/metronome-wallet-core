@@ -4,7 +4,7 @@ const { createMetronome, createProvider } = require('metronome-sdk')
 const metSdk = require('metronome-sdk')
 // const MetronomeContracts = require('metronome-contracts')
 
-const { buyMet } = require('./auction-api')
+const { buyMet, estimateAuctionGas } = require('./auction-api')
 // const {
 //   convertCoin,
 //   convertMet,
@@ -45,7 +45,7 @@ function createPlugin() {
    */
   function start({ config, eventBus, plugins }) {
     const { erc20, coin, tokensBalance, transactionsList, wallet } = plugins
-    const { chainId, chainType } = config
+    const { chainId, chainType, gasOverestimation } = config
     const { transactionsSyncer } = plugins
 
     const metProvider = createProvider.fromLib(coin.lib)
@@ -141,10 +141,10 @@ function createPlugin() {
     )
 
     // Define gas over-estimation wrapper
-    // const over = fn => (...args) =>
-    //   fn(...args).then(gas => ({
-    //     gasLimit: Math.round(gas * gasOverestimation)
-    //   }))
+    const over = fn => (...args) =>
+      fn(...args).then(gas => ({
+        gasLimit: Math.round(gas * gasOverestimation)
+      }))
 
     // Build and return API
     return {
@@ -178,7 +178,7 @@ function createPlugin() {
         //   transactionsList.logTransaction,
         //   metaParsers
         // ),
-        // getAuctionGasLimit: over(estimateAuctionGas(web3, chainId)),
+        getAuctionGasLimit: over(estimateAuctionGas(coin)),
         // getConvertCoinEstimate: getCoinToMetEstimate(web3, chainId),
         // getConvertCoinGasLimit: over(estimateCoinToMetGas(web3, chainId)),
         // getConvertMetEstimate: getMetToMetEstimate(web3, chainId),

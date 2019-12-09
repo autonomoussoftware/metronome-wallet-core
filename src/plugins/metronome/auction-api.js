@@ -1,7 +1,6 @@
 'use strict'
 
 const { createMetronome, createProvider } = require('metronome-sdk')
-const MetronomeContracts = require('metronome-contracts')
 
 function buyMet(getSigningLib, logTransaction, metaParsers) {
   return function(privateKey, { from, value, gas, gasPrice }) {
@@ -15,9 +14,9 @@ function buyMet(getSigningLib, logTransaction, metaParsers) {
   }
 }
 
-function estimateAuctionGas(web3, chain) {
-  const to = MetronomeContracts[chain].Auctions.address
-  return ({ from, value }) => web3.eth.estimateGas({ from, to, value })
+function estimateAuctionGas(coin) {
+  const met = createMetronome(createProvider.fromLib(coin.lib))
+  return ({ from, value }) => met.estimateBuyMetGas(value, { from })
 }
 
 module.exports = {
