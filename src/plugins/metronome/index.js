@@ -109,13 +109,13 @@ function createPlugin() {
           }))
           .then(function(status) {
             eventBus.emit('converter-status-updated', status)
-          })
-        // getAttestationThreshold(web3, chainId).then(function (status) {
-        //   eventBus.emit('attestation-threshold-updated', status)
-        // }),
-        // getChainHopStartTime(web3, chainId).then(function (status) {
-        //   eventBus.emit('chain-hop-start-time-updated', status)
-        // })
+          }),
+        met.getAttestationThreshold().then(function(threshold) {
+          eventBus.emit('attestation-threshold-updated', { threshold })
+        }),
+        met.getChainHopStartTime().then(function(chainHopStartTime) {
+          eventBus.emit('chain-hop-start-time-updated', { chainHopStartTime })
+        })
       ]).catch(function(err) {
         eventBus.emit('wallet-error', {
           inner: err,
