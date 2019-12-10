@@ -6,8 +6,8 @@ const MetronomeContracts = require('metronome-contracts')
 
 const { getExportMetFee } = require('./porter-api')
 
-function estimateExportMetGas(web3, chain) {
-  const { METToken } = new MetronomeContracts(web3, chain)
+function estimateExportMetGas(coin) {
+  const met = createMetronome(createProvider.fromLib(coin.lib))
   return function(params) {
     const {
       destinationChain,
@@ -18,16 +18,17 @@ function estimateExportMetGas(web3, chain) {
       to,
       value
     } = params
-    return METToken.methods
-      .export(
-        toHex(destinationChain),
-        destinationMetAddress,
-        to || from,
-        value,
-        fee,
-        extraData
-      )
-      .estimateGas({ from })
+    return met.estimateExportMetGas(
+      {
+        destChain: destinationChain,
+        destMetronomeAddr: destinationMetAddress
+      },
+      to || from,
+      value,
+      fee,
+      extraData,
+      { from }
+    )
   }
 }
 

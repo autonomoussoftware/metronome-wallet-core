@@ -15,7 +15,7 @@ const {
 } = require('./converter-api')
 const { getExportMetFee /* , getMerkleRoot */ } = require('./porter-api')
 const {
-  //   estimateExportMetGas,
+  estimateExportMetGas,
   //   estimateImportMetGas,
   //   exportMet,
   //   importMet,
@@ -170,7 +170,7 @@ function createPlugin() {
         // ),
         getExportMetFee: getExportMetFee(coin),
         // getMerkleRoot: getMerkleRoot(web3, chainId),
-        // estimateExportMetGas: over(estimateExportMetGas(web3, chainId)),
+        estimateExportMetGas: over(estimateExportMetGas(coin)),
         // estimateImportMetGas: over(estimateImportMetGas(web3, chainId)),
         // exportMet: exportMet(
         //   web3,
