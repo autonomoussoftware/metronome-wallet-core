@@ -1,40 +1,39 @@
 'use strict'
 
+const { createMetronome, createProvider } = require('metronome-sdk')
 const { MerkleTree } = require('merkletreejs')
-const { BN, toBN } = require('web3-utils')
+const { toBN } = require('web3-utils')
 const crypto = require('crypto')
 const MetronomeContracts = require('metronome-contracts')
 
-function getExportMetFee (web3, chain) {
-  const { TokenPorter } = new MetronomeContracts(web3, chain)
-  return ({ value }) =>
-    Promise.all([
-      TokenPorter.methods.minimumExportFee().call().then(fee => toBN(fee)),
-      TokenPorter.methods.exportFee().call().then(fee => toBN(fee))
-    ])
-      .then(([minFee, exportFee]) =>
-        BN.max(minFee, exportFee.mul(toBN(value)).divn(10000)).toString()
-      )
+function getExportMetFee(coin) {
+  const met = createMetronome(createProvider.fromLib(coin.lib))
+  return ({ value }) => met.calcExportFee(value)
 }
 
-const sha256 = data => crypto.createHash('sha256').update(data).digest()
+const sha256 = data =>
+  crypto
+    .createHash('sha256')
+    .update(data)
+    .digest()
 
-function calcMerkleRoot (hashes) {
+function calcMerkleRoot(hashes) {
   const leaves = hashes.map(x => Buffer.from(x.slice(2), 'hex'))
   const tree = new MerkleTree(leaves, sha256)
   return `0x${tree.getRoot().toString('hex')}`
 }
 
-function getMerkleRoot (web3, chain) {
+function getMerkleRoot(web3, chain) {
   const { TokenPorter } = new MetronomeContracts(web3, chain)
   return burnSeq =>
-    Promise.all(new Array(16).fill()
-      .map((_, i) => toBN(burnSeq).subn(i))
-      .filter(seq => seq.gten(0))
-      .reverse()
-      .map(seq => TokenPorter.methods.exportedBurns(seq.toString()).call())
-    )
-      .then(calcMerkleRoot)
+    Promise.all(
+      new Array(16)
+        .fill(null)
+        .map((_, i) => toBN(burnSeq).subn(i))
+        .filter(seq => seq.gten(0))
+        .reverse()
+        .map(seq => TokenPorter.methods.exportedBurns(seq.toString()).call())
+    ).then(calcMerkleRoot)
 }
 
 module.exports = {
