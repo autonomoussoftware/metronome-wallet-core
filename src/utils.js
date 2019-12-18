@@ -45,7 +45,7 @@ module.exports = {
     63: ethereumUtils
   },
   qtum: {
-    main: qtumUtils('mainnet'),
-    test: qtumUtils('testnet')
+    1364481357: qtumUtils('mainnet'),
+    1364481358: qtumUtils('testnet')
   }
 }
