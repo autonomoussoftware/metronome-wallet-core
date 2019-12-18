@@ -9,12 +9,12 @@ const debug = require('debug')('metronome-wallet:core:eth-blocks:stream')
  * @param {object} web3 A web3 instance.
  * @returns {object} A stream object that emits `data` on each block.
  */
-function createStream (web3) {
+function createStream(web3) {
   debug('Subscribing to new block headers')
 
   const subscription = web3.eth.subscribe('newBlockHeaders')
-  subscription.destroy = function (callback = noop) {
-    subscription.unsubscribe(function (err, success) {
+  subscription.destroy = function(callback = noop) {
+    subscription.unsubscribe(function(err, success) {
       if (err) {
         debug('Could not unsubscribe %s', err.message)
       }
@@ -26,10 +26,10 @@ function createStream (web3) {
 
   web3.eth
     .getBlock('latest')
-    .then(function (block) {
+    .then(function(block) {
       subscription.emit('data', block)
     })
-    .catch(function (err) {
+    .catch(function(err) {
       subscription.emit('error', err)
     })
 

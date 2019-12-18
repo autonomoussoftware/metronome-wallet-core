@@ -372,7 +372,7 @@ describe('Core E2E', function() {
     const fixtures = {
       address: 'qTb9C5NeNTmKfNvvViTCUDsqBSDm9hrEe4',
       config: {
-        chainId: 'test',
+        chainId: 1364481358, // Fake EIP-155 testnet chain ID
         chainType: 'qtum',
         explorerApiUrl: process.env.QTUMTEST_EXPLORER,
         nodeUrl: process.env.QTUMTEST_NODE,

@@ -11,6 +11,7 @@
  * @property {string} [nodeUrl]
  * @property {string} [symbol]
  * @property {boolean} [useNativeCookieJar]
+ * @property {number} [web3Timeout]
  * @property {string} [wsApiUrl]
  *
  * @typedef CoreOptions

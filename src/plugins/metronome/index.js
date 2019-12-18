@@ -45,7 +45,7 @@ function createPlugin() {
    */
   function start({ config, eventBus, plugins }) {
     const { erc20, coin, tokensBalance, transactionsList, wallet } = plugins
-    const { chainId, chainType, gasOverestimation } = config
+    const { chainId, gasOverestimation } = config
     const { transactionsSyncer } = plugins
 
     const metProvider = createProvider.fromLib(coin.lib)
@@ -69,7 +69,7 @@ function createPlugin() {
     })
 
     // Register all MET events
-    const metContracts = metSdk.getContracts(chainType, chainId)
+    const metContracts = metSdk.getContracts(chainId)
     ;[]
       .concat(auctionEvents.getEventDataCreator(metContracts))
       //   .concat(converterEvents.getEventDataCreator(metContracts))

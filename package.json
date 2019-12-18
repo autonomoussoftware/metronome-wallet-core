@@ -39,7 +39,7 @@
     "lodash": "^4.17.15",
     "mem": "^5.1.1",
     "merkletreejs": "0.0.25",
-    "metronome-sdk": "bloqpriv/metronome-sdk",
+    "metronome-sdk": "bloqpriv/metronome-sdk#qtum-to-web3",
     "p-all": "^2.1.0",
     "p-defer": "^1.0.0",
     "p-retry": "^4.2.0",

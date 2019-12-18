@@ -5,7 +5,7 @@ const { create: createAxios } = require('axios').default
 const { default: axiosCookieJarSupport } = require('axios-cookiejar-support')
 const { encodeMethod } = require('qtumjs-ethjs-abi')
 const { padStart } = require('lodash')
-const parseContractLogs = require('metronome-sdk/src/parse-logs')
+const parseContractLogs = require('metronome-sdk/lib/parse-logs')
 const web3EthAbi = require('web3-eth-abi')
 
 /**
@@ -15,7 +15,7 @@ const web3EthAbi = require('web3-eth-abi')
  * @returns {object} The endpoints.
  */
 function createHttpApi(config) {
-  const { explorerApiUrl, useNativeCookieJar } = config
+  const { chainId, explorerApiUrl, useNativeCookieJar } = config
 
   // Create cookiejar and axios
 
@@ -142,7 +142,7 @@ function createHttpApi(config) {
         }
         params[`topic${i + 2}`] =
           topic.type === 'address'
-            ? padStart(coin.getHexAddressSync(filterValue), 64, '0')
+            ? padStart(coin.web3.utils.toHexAddress(filterValue), 64, '0')
             : filterValue
       })
 
@@ -168,7 +168,11 @@ function createHttpApi(config) {
             .map(receipt => receipt.logs[0])
             .map(log => ({
               ...log,
-              returnValues: coin.parseReturnValues(log.returnValues, descriptor)
+              returnValues: coin.web3.qtum.normalizeReturnValues(
+                chainId,
+                descriptor,
+                log.returnValues
+              )
             }))
         )
     }

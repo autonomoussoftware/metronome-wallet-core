@@ -9,16 +9,18 @@ const defaultConfig = require('./defaultConfig.json')
 // Require all plugins in advance to allow static check of missing dependencies
 /* eslint-disable quote-props */
 const plugins = {
+  'check-chain': require('./plugins/check-chain'),
+  coin: require('./plugins/coin'),
   'coin-balance': require('./plugins/coin-balance'),
   erc20: require('./plugins/erc20'),
-  eth: require('./plugins/eth'),
+  'eth-web3': require('./plugins/eth-web3'),
   'eth-blocks': require('./plugins/eth-blocks'),
   'eth-explorer': require('./plugins/eth-explorer'),
   'eth-tx-indexer': require('./plugins/eth-tx-indexer'),
   'eth-tokens': require('./plugins/eth-tokens'),
   'eth-wallet': require('./plugins/eth-wallet'),
   metronome: require('./plugins/metronome'),
-  qtum: require('./plugins/qtum'),
+  'qtum-web3': require('./plugins/qtum-web3'),
   'qtum-tokens': require('./plugins/qtum-tokens'),
   'qtum-wallet': require('./plugins/qtum-wallet'),
   'qtuminfo-explorer': require('./plugins/qtuminfo-explorer'),
@@ -33,7 +35,9 @@ const pluginsList = {
   ethereum: [
     'rates',
     'erc20',
-    'eth',
+    'eth-web3',
+    'coin',
+    'check-chain',
     'eth-blocks',
     'eth-tx-indexer',
     'eth-explorer',
@@ -48,7 +52,10 @@ const pluginsList = {
   qtum: [
     'rates',
     'erc20',
-    'qtum',
+    // 'qtum',
+    'qtum-web3',
+    'coin',
+    'check-chain',
     'qtuminfo-explorer',
     'transactions-list',
     'transactions-syncer',

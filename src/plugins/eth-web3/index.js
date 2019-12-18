@@ -3,9 +3,6 @@
 const debug = require('debug')('metronome-wallet:core:eth')
 
 const { createWeb3, destroyWeb3 } = require('./web3')
-const checkChain = require('./check-chain')
-const createApi = require('./api')
-const utils = require('./utils')
 
 /**
  * Create the plugin.
@@ -18,12 +15,13 @@ function createPlugin() {
   /**
    * Start the plugin.
    *
+   * @param {CoreOptions} options The starting options.
    * @returns {CorePluginInterface} The plugin API.
    */
   function start({ config, eventBus }) {
     debug('Starting')
 
-    const { chainId, web3Timeout, wsApiUrl } = config
+    const { web3Timeout, wsApiUrl } = config
 
     const emit = {
       connectionStatus(connected) {
@@ -42,20 +40,10 @@ function createPlugin() {
 
     web3 = createWeb3(wsApiUrl, web3Timeout, emit)
 
-    checkChain(web3, chainId)
-      .then(function() {
-        debug('Chain ID is correct')
-      })
-      .catch(emit.walletError('Could not validate chain ID'))
-
     return {
-      api: {
-        lib: web3,
-        ...createApi(web3),
-        ...utils
-      },
+      api: web3,
       events: ['wallet-error', 'web3-connection-status-changed'],
-      name: 'coin'
+      name: 'web3'
     }
   }
 
