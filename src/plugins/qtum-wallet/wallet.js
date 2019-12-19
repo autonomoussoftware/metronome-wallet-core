@@ -11,7 +11,7 @@ const wif = require('wif')
  * @param {string} seed The wallet seed string.
  * @returns {string} The private key.
  */
-function getPrivateKey (seed) {
+function getPrivateKey(seed) {
   const { privateKey } = hdkey
     .fromMasterSeed(Buffer.from(seed, 'hex'))
     .derive("m/88'/0'/0'")
@@ -21,11 +21,11 @@ function getPrivateKey (seed) {
 /**
  * Create a Qtum wallet RPC providers for the specified chain.
  *
- * @param {string} chainId The ID of the chain: `test` or `main`.
+ * @param {string} chainId The EIP-155 ID of the chain.
  * @returns {object} The provider creators.
  */
-function forChain (chainId) {
-  const networkNames = { main: 'mainnet', test: 'testnet' }
+function forChain(chainId) {
+  const networkNames = { 1364481357: 'mainnet', 1364481358: 'testnet' }
   const network = networks[networkNames[chainId]]
 
   /**
@@ -34,7 +34,7 @@ function forChain (chainId) {
    * @param {string} privateKey The wallet seed string.
    * @returns {WalletRPCProvider} A signing RPC provider.
    */
-  function fromPrivateKey (privateKey) {
+  function fromPrivateKey(privateKey) {
     const encoded = wif.encode(
       network.info.wif,
       Buffer.from(privateKey, 'hex'),
@@ -50,7 +50,7 @@ function forChain (chainId) {
    * @param {string} seed The wallet seed string.
    * @returns {WalletRPCProvider} A signing RPC provider.
    */
-  function fromSeed (seed) {
+  function fromSeed(seed) {
     return fromPrivateKey(getPrivateKey(seed))
   }
 
