@@ -6,11 +6,10 @@ const qtumWallet = require('../src/plugins/qtum-wallet')()
 
 describe('Qtum wallet', function() {
   it('should return the Qtum address', function() {
-    const config = { chainId: 'test' }
+    const config = { chainId: 1364481358 }
 
     const plugins = {
-      coin: { lib: {} },
-      qtum: {},
+      web3: { qtum: {} },
       transactionsList: {}
     }
 
