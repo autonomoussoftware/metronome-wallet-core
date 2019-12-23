@@ -49,8 +49,11 @@ function createHttpApi(config) {
   const getBlock = hashOrNumber =>
     axios(`/api/block/${hashOrNumber}`).then(res => res.data)
   const getInfo = () => axios('/api/info').then(res => res.data)
+
   const getMinGasPrice = () =>
-    getInfo().then(info => ({ gasPrice: info.dgpInfo.minGasPrice.toString() }))
+    getInfo().then(info => ({
+      gasPrice: `${info.dgpInfo.minGasPrice.toString()}0000000000` // wei
+    }))
 
   const getTransaction = (hash, address) =>
     axios(`/api/tx/${hash}`)
@@ -71,7 +74,7 @@ function createHttpApi(config) {
           isRefund: txOutput.isRefund,
           to: txOutput.address,
           receipt: txOutput.receipt || { excepted: 'None' },
-          value: txOutput.value
+          value: `${txOutput.value}0000000000` // wei
         }
       })
   const getTransactionReceipt = (hash, address) =>

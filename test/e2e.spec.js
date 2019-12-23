@@ -179,10 +179,10 @@ function addTests(fixtures) {
     })
 
     const transactionObject = {
+      ...sendCoinDefaults,
       from: address0,
       to,
-      value,
-      ...sendCoinDefaults
+      value
     }
     api.wallet.sendCoin(privateKey, transactionObject).catch(end)
   })
@@ -317,6 +317,109 @@ function addTests(fixtures) {
         end()
       })
       .catch(end)
+  })
+
+  it('should get status, buy MET and emit wallet events', function(done) {
+    this.timeout(0)
+
+    const self = this
+
+    const core = createCore()
+    const { api, emitter } = core.start(config)
+
+    const mnemonic = process.env.MNEMONIC
+    const seed = bip39.mnemonicToSeedHex(mnemonic).toString('hex')
+    const address0 = api.wallet.createAddress(seed)
+    const privateKey = api.wallet.createPrivateKey(seed)
+    const walletId = 'walletId'
+
+    const value = '1000000000000'
+    let buyTxSent = false
+    let events = 0
+
+    const end = once(function(err) {
+      core.stop()
+      done(err)
+    })
+
+    emitter.on('error', function(err) {
+      end(err)
+    })
+    emitter.on('wallet-error', function(err) {
+      end(new Error(err.message))
+    })
+    emitter.on('auction-status-updated', function({ tokenRemaining }) {
+      if (tokenRemaining === '0') {
+        self.skip()
+        return
+      }
+      if (buyTxSent) {
+        return
+      }
+      buyTxSent = true
+      Promise.all([
+        api.metronome.getAuctionGasLimit({ from: address0, value }),
+        api.explorer.getGasPrice()
+      ])
+        .then(([{ gasLimit }, { gasPrice }]) =>
+          api.metronome.buyMetronome(privateKey, {
+            from: address0,
+            value,
+            gas: gasLimit,
+            gasPrice
+          })
+        )
+        .catch(end)
+    })
+    emitter.on('wallet-state-changed', function(data) {
+      try {
+        const { transactions } = data[walletId].addresses[address0]
+        if (!transactions) {
+          return
+        }
+        debug('Transaction received %J', transactions)
+        events += 1
+        transactions.should.have.length(1)
+        const { transaction, receipt, meta } = transactions[0]
+        transaction.should.have.property('from', address0)
+        transaction.should.have.property('hash').that.is.a('string')
+        transaction.should.have.property('value', value)
+        try {
+          transaction.should.have.property('blockHash').that.is.a('string')
+          transaction.should.have.property('blockNumber').that.is.a('number')
+          receipt.should.have.property('blockHash', transaction.blockHash)
+          receipt.should.have.property('blockNumber', transaction.blockNumber)
+          receipt.should.have.property(
+            'from',
+            receiptAddressFormatter(address0)
+          )
+          receipt.should.have.property('logs').that.is.an('array')
+          receipt.logs
+            .filter(log => log.topics[0].includes('a3d6792b'))
+            .should.have.lengthOf(1)
+          receipt.should.have.property('status').that.is.true
+          receipt.should.have.property('transactionHash').that.is.a('string')
+          meta.should.deep.equal({ contractCallFailed: false })
+          end()
+        } catch (err) {
+          if (events === 1) {
+            return
+          } else if (events === 2) {
+            end(err)
+          } else {
+            end(new Error('Should have never receive a 3rd event'))
+          }
+        }
+      } catch (err) {
+        end(err)
+      }
+    })
+
+    emitter.emit('open-wallets', {
+      walletIds: [walletId],
+      activeWallet: walletId,
+      address: address0
+    })
   })
 }
 
