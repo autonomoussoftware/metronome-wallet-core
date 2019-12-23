@@ -143,7 +143,7 @@ function addTests(fixtures) {
         transaction.should.have.property('hash').that.is.a('string')
         transaction.should.have.property('to', to)
         transaction.should.have.property('value', value)
-        if (events === 2) {
+        try {
           transaction.should.have.property('blockHash').that.is.a('string')
           transaction.should.have.property('blockNumber').that.is.a('number')
           receipt.should.have.property('blockHash', transaction.blockHash)
@@ -158,8 +158,14 @@ function addTests(fixtures) {
           receipt.should.have.property('transactionHash').that.is.a('string')
           meta.should.deep.equal({ contractCallFailed: false })
           end()
-        } else if (events > 2) {
-          end(new Error('Test should have never reached here'))
+        } catch (err) {
+          if (events === 1) {
+            return
+          } else if (events === 2) {
+            end(err)
+          } else {
+            end(new Error('Should have never receive a 3rd event'))
+          }
         }
       } catch (err) {
         end(err)

@@ -21,18 +21,18 @@ function createPlugin() {
     debug('Starting')
 
     const { chainId } = config
-    const { coin, transactionsList } = plugins
+    const { transactionsList, web3 } = plugins
 
-    const walletRPCProvider = wallet.forChain(chainId.toString())
+    const { qtumRPC } = web3.qtum
+    const walletRPCProviderCreator = wallet.forChain(chainId.toString())
 
     return {
       api: {
         createPrivateKey: wallet.getPrivateKey,
         ...createApi(
-          walletRPCProvider,
-          coin.lib.qtumRPC,
-          transactionsList.logTransaction,
-          coin.toPromiEvent
+          qtumRPC,
+          walletRPCProviderCreator,
+          transactionsList.logTransaction
         )
       },
       name: 'wallet'

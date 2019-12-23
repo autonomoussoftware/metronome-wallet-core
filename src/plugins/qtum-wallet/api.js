@@ -1,26 +1,36 @@
 'use strict'
 
 const debug = require('debug')('metronome-wallet:core:qtum-wallet:api')
+const qtumToWeb3 = require('metronome-sdk/lib/qtum-to-web3')
 
-function createApi(walletRPCProvider, qtumRPC, logTransaction, toPromiEvent) {
+function createApi(qtumRPC, walletRPCProviderCreator, logTransaction) {
   // Qtum does not require gas to send QTUM coins.
   const getGasLimit = () => Promise.resolve('0')
 
-  const createAddress = seed => walletRPCProvider.fromSeed(seed).wallet.address
+  const createAddress = seed =>
+    walletRPCProviderCreator.fromSeed(seed).wallet.address
 
   function getSigningLib(privateKey) {
-    const signingProvider = walletRPCProvider.fromPrivateKey(privateKey)
-    return { qtumRPC, walletRPCProvider: signingProvider }
+    const walletRPCProvider = walletRPCProviderCreator.fromPrivateKey(
+      privateKey
+    )
+    return { qtumRPC, walletRPCProvider }
   }
 
-  // The min relay fee is set to 90400. For a 225 bytes tx, the fee rate
-  // shall be >= 402 satoshis/byte.
-  function sendCoin(privateKey, { from, to, value, feeRate = 402 }) {
+  function sendCoin(privateKey, transactionOptions) {
+    // The min relay fee is set to 90400. For a 225 bytes tx, the fee rate shall
+    // be >= 402 satoshis/byte.
+    const { from, to, value, feeRate = 402 } = transactionOptions
     debug('Sending Coin', to, value, feeRate)
-    const { wallet } = getSigningLib(privateKey).walletRPCProvider
-    const sendPromise = wallet.send(to, Number.parseInt(value), { feeRate })
-    const promiEvent = toPromiEvent(sendPromise)
-    return logTransaction(promiEvent, from)
+
+    const walletRPCProvider = walletRPCProviderCreator.fromPrivateKey(
+      privateKey
+    )
+    const web3 = qtumToWeb3({ qtumRPC, walletRPCProvider })
+    return logTransaction(
+      web3.eth.sendTransaction({ from, to, value, feeRate }),
+      from
+    )
   }
 
   return {
