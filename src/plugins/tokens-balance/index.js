@@ -23,6 +23,7 @@ function createPlugin() {
 
     const emit = {
       balances(address) {
+        debug('Emitting registered token balances')
         registeredTokens.forEach(function({
           contractAddress,
           meta: { symbol }
@@ -81,6 +82,10 @@ function createPlugin() {
       erc20
         .getEventDataCreators(contractAddress)
         .forEach(transactionsSyncer.registerEvent)
+
+      if (accountAddress && walletId) {
+        emit.balances(accountAddress)
+      }
     }
 
     return {
