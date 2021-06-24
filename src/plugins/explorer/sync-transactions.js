@@ -3,7 +3,10 @@
 const { identity } = require('lodash')
 const debug = require('debug')('met-wallet:core:explorer:syncer')
 const pAll = require('p-all')
+const pWhilst = require('p-whilst')
+const pTimeout = require('p-timeout')
 const pDefer = require('p-defer')
+const noop = require('lodash/noop')
 
 // eslint-disable-next-line max-params
 function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
@@ -88,7 +91,41 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
       })
   }
 
-  const getPastEvents = (fromBlock, toBlock, address) =>
+  function getPastEventsWithChunks (options) {
+    const CHUNK_SIZE = 4000
+    const { address, contract, eventName, fromBlock, toBlock, filter, metaParser, minBlock = 0, onProgress = noop } = options
+    let chunkIndex = 0
+    return pWhilst(
+      () => (fromBlock + CHUNK_SIZE * chunkIndex) < toBlock,
+      function () {
+        const newFromBlock = fromBlock + CHUNK_SIZE * chunkIndex
+        const newToBlock = Math.min(fromBlock + CHUNK_SIZE * (chunkIndex + 1), toBlock)
+        debug('Retrieving from %s to %s for event %s', newFromBlock, newToBlock, eventName)
+        return pTimeout(
+          contract
+            .getPastEvents(eventName, {
+              fromBlock: Math.max(newFromBlock, minBlock),
+              toBlock: Math.max(newToBlock, minBlock),
+              filter
+            })
+            .then(function (events) {
+              debug(`${events.length} past ${eventName} events retrieved`)
+              return Promise.all(
+                events.map(queue.addEvent(address, metaParser))
+              )
+            })
+            .then(function () {
+              debug('Retrieved from %s to %s for event %s', newFromBlock, newToBlock, eventName)
+              chunkIndex++
+              return onProgress(newToBlock)
+            })
+          ,
+          1000 * 60 * 2
+        )
+      })
+  }
+
+  const getPastEvents = (fromBlock, toBlock, address, onProgress) =>
     pAll(
       eventsRegistry
         .getAll()
@@ -109,23 +146,11 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
             debug(`Could not get past events for ${eventName}`)
             return null
           }
-
           return () =>
-            contract
-              .getPastEvents(eventName, {
-                fromBlock: Math.max(fromBlock, minBlock),
-                toBlock: Math.max(toBlock, minBlock),
-                filter
-              })
-              .then(function (events) {
-                debug(`${events.length} past ${eventName} events retrieved`)
-                return Promise.all(
-                  events.map(queue.addEvent(address, metaParser))
-                )
-              })
+            getPastEventsWithChunks({ address, contract, eventName, fromBlock, toBlock, filter, minBlock, onProgress, metaParser })
         })
         .filter(identity),
-      { concurrency: 5 }
+      { concurrency: 3 }
     )
 
   const subscriptions = []
@@ -173,14 +198,7 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
           resyncing = true
           shallResync = false
           // eslint-disable-next-line promise/catch-or-return
-          contract.getPastEvents(
-            eventName,
-            { fromBlock: bestSyncBlock, filter }
-          )
-            .then(function (events) {
-              debug(`${events.length} past ${eventName} events retrieved`)
-              events.forEach(queue.addEvent(address, metaParser))
-            })
+          getPastEventsWithChunks({ address, contract, eventName, fromBlock: bestSyncBlock, toBlock: undefined, filter, metaParser })
             .catch(function (err) {
               shallResync = true
               eventBus.emit('wallet-error', {
@@ -200,7 +218,7 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
     })
   }
 
-  const syncTransactions = (fromBlock, address) =>
+  const syncTransactions = (fromBlock, address, onProgress) =>
     gotBestBlockPromise
       .then(function () {
         debug('Syncing', fromBlock, bestBlock)
@@ -208,7 +226,7 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
         subscribeEvents(bestBlock, address)
         return Promise.all([
           getPastCoinTransactions(fromBlock, bestBlock, address),
-          getPastEvents(fromBlock, bestBlock, address)
+          getPastEvents(fromBlock, bestBlock, address, onProgress)
         ])
       })
       .then(function ([syncedBlock]) {
@@ -221,7 +239,7 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
       .then(() =>
         Promise.all([
           getPastCoinTransactions(0, bestBlock, address),
-          getPastEvents(0, bestBlock, address)
+          getPastEvents(0, bestBlock, address, function (syncedBlock) { bestBlock = syncedBlock })
         ])
           .then(function ([syncedBlock]) {
             bestBlock = syncedBlock

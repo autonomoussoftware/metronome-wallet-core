@@ -349,6 +349,7 @@ describe('Explorer plugin', function () {
 
   describe('refreshAllTransactions', function () {
     it('should start from birthblock', function (done) {
+      this.timeout(80000)
       const chain = 'ropsten'
       const { birthblock } = MetronomeContracts[chain].Auctions
       const latestBlock = 5000000
@@ -359,7 +360,9 @@ describe('Explorer plugin', function () {
       const responses = {
         eth_getBlockByNumber: () => ({ number: latestBlock }),
         eth_getLogs ({ fromBlock, toBlock }) {
-          receivedFromBlock = Web3.utils.hexToNumber(fromBlock)
+          if (receivedFromBlock === undefined) {
+            receivedFromBlock = Web3.utils.hexToNumber(fromBlock)
+          }
           receivedToBlock = Web3.utils.hexToNumber(toBlock)
           return []
         }
