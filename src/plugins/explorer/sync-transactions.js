@@ -93,19 +93,29 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
 
   function getPastEventsWithChunks (options) {
     const CHUNK_SIZE = 4000
-    const { address, contract, eventName, fromBlock, toBlock, filter, metaParser, minBlock = 0, onProgress = noop } = options
+    const {
+      address,
+      contract,
+      eventName,
+      fromBlock,
+      toBlock,
+      filter,
+      metaParser,
+      minBlock = 0,
+      onProgress = noop
+    } = options
     let chunkIndex = 0
     return pWhilst(
       () => (fromBlock + CHUNK_SIZE * chunkIndex) < toBlock,
       function () {
-        const newFromBlock = fromBlock + CHUNK_SIZE * chunkIndex
-        const newToBlock = Math.min(fromBlock + CHUNK_SIZE * (chunkIndex + 1), toBlock)
+        const newFromBlock = Math.max(fromBlock + CHUNK_SIZE * chunkIndex, minBlock)
+        const newToBlock = Math.max(Math.min(fromBlock + CHUNK_SIZE * (chunkIndex + 1), toBlock), minBlock)
         debug('Retrieving from %s to %s for event %s', newFromBlock, newToBlock, eventName)
         return pTimeout(
           contract
             .getPastEvents(eventName, {
-              fromBlock: Math.max(newFromBlock, minBlock),
-              toBlock: Math.max(newToBlock, minBlock),
+              fromBlock: newFromBlock,
+              toBlock: newToBlock,
               filter
             })
             .then(function (events) {
@@ -147,7 +157,17 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
             return null
           }
           return () =>
-            getPastEventsWithChunks({ address, contract, eventName, fromBlock, toBlock, filter, minBlock, onProgress, metaParser })
+            getPastEventsWithChunks({
+              address,
+              contract,
+              eventName,
+              fromBlock,
+              toBlock,
+              filter,
+              minBlock,
+              onProgress,
+              metaParser
+            })
         })
         .filter(identity),
       { concurrency: 3 }
@@ -198,7 +218,15 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
           resyncing = true
           shallResync = false
           // eslint-disable-next-line promise/catch-or-return
-          getPastEventsWithChunks({ address, contract, eventName, fromBlock: bestSyncBlock, toBlock: undefined, filter, metaParser })
+          getPastEventsWithChunks({
+            address,
+            contract,
+            eventName,
+            fromBlock: bestSyncBlock,
+            toBlock: number,
+            filter,
+            metaParser
+          })
             .catch(function (err) {
               shallResync = true
               eventBus.emit('wallet-error', {
