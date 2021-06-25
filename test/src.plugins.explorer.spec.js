@@ -349,7 +349,7 @@ describe('Explorer plugin', function () {
 
   describe('refreshAllTransactions', function () {
     it('should start from birthblock', function (done) {
-      this.timeout(80000)
+      this.timeout(40000)
       const chain = 'ropsten'
       const { birthblock } = MetronomeContracts[chain].Auctions
       const latestBlock = 5000000

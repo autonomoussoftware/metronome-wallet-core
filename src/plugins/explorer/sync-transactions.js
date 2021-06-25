@@ -104,12 +104,23 @@ function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
       minBlock = 0,
       onProgress = noop
     } = options
+    const baseFromBlock = Math.max(fromBlock, minBlock)
+    debug('Retrieving from %s to %s in chunks', baseFromBlock, toBlock)
     let chunkIndex = 0
+    const getNewFromBlock = index => baseFromBlock + CHUNK_SIZE * index
+    const getNewToBlock = function (index) {
+      const istLastRequest = baseFromBlock + CHUNK_SIZE * (index + 1) === toBlock
+      return Math.max(Math.min(baseFromBlock + CHUNK_SIZE * (index + 1) - (istLastRequest ? 0 : 1), toBlock), minBlock)
+    }
     return pWhilst(
-      () => (fromBlock + CHUNK_SIZE * chunkIndex) < toBlock,
       function () {
-        const newFromBlock = Math.max(fromBlock + CHUNK_SIZE * chunkIndex, minBlock)
-        const newToBlock = Math.max(Math.min(fromBlock + CHUNK_SIZE * (chunkIndex + 1), toBlock), minBlock)
+        const newFromBlock = getNewFromBlock(chunkIndex)
+        const newToBlock = getNewToBlock(chunkIndex)
+        return newFromBlock < newToBlock
+      },
+      function () {
+        const newFromBlock = getNewFromBlock(chunkIndex)
+        const newToBlock = getNewToBlock(chunkIndex)
         debug('Retrieving from %s to %s for event %s', newFromBlock, newToBlock, eventName)
         return pTimeout(
           contract
