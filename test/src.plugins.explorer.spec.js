@@ -96,6 +96,7 @@ describe('Explorer plugin', function () {
       })
 
       const responses = {
+        eth_subscribe: () => ({ }),
         eth_getBlockByNumber: () => ({ number: 0 }),
         eth_getTransactionByHash (_hash) {
           _hash.should.equal(hash)
@@ -202,6 +203,7 @@ describe('Explorer plugin', function () {
       })
 
       const responses = {
+        eth_subscribe: () => ({ }),
         eth_getBlockByNumber: () => ({ number: 0 }),
         eth_getTransactionByHash (_hash) {
           _hash.should.equal(hash)
@@ -252,6 +254,7 @@ describe('Explorer plugin', function () {
       })
 
       const responses = {
+        eth_subscribe: () => ({ }),
         eth_getBlockByNumber: () => ({ number: 0 }),
         eth_getTransactionByHash (_hash) {
           _hash.should.equal(hash)
@@ -325,6 +328,7 @@ describe('Explorer plugin', function () {
       })
 
       const responses = {
+        eth_subscribe: () => ({ }),
         eth_getBlockByNumber: () => ({ number: 0 }),
         eth_getTransactionByHash (_hash) {
           _hash.should.equal(hash)
@@ -349,15 +353,15 @@ describe('Explorer plugin', function () {
 
   describe('refreshAllTransactions', function () {
     it('should start from birthblock', function (done) {
-      this.timeout(40000)
       const chain = 'ropsten'
       const { birthblock } = MetronomeContracts[chain].Auctions
-      const latestBlock = 5000000
+      const latestBlock = birthblock + 10000
 
       let receivedFromBlock
       let receivedToBlock
 
       const responses = {
+        eth_subscribe: () => ({ }),
         eth_getBlockByNumber: () => ({ number: latestBlock }),
         eth_getLogs ({ fromBlock, toBlock }) {
           if (receivedFromBlock === undefined) {
@@ -471,6 +475,7 @@ describe('Explorer plugin', function () {
       })
 
       const responses = {
+        eth_subscribe: () => ({ }),
         eth_getBlockByNumber: () => ({ number: 0 }),
         eth_getTransactionByHash (_hash) {
           _hash.should.equal(hash)
@@ -576,6 +581,7 @@ describe('Explorer plugin', function () {
     })
 
     const responses = {
+      eth_subscribe: () => ({ }),
       eth_getBlockByNumber: () => ({ number: 0 }),
       eth_getTransactionByHash (_hash) {
         _hash.should.equal(hash)

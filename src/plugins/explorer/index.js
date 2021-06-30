@@ -43,10 +43,10 @@ function createPlugin () {
       eventBus.emit('coin-block', { hash, number, timestamp })
     })
     blocksStream.on('error', function (err) {
-      debug('Could not get lastest block')
+      debug('Could not get latest block')
       eventBus.emit('wallet-error', {
         inner: err,
-        message: 'Could not get lastest block',
+        message: 'Could not get latest block',
         meta: { plugin: 'explorer' }
       })
     })

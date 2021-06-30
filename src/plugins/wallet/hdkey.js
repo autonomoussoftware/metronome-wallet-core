@@ -1,6 +1,6 @@
 'use strict'
 
-const hdkey = require('ethereumjs-wallet/hdkey')
+const { hdkey } = require('ethereumjs-wallet')
 
 const getWalletFromSeed = (seed, index = 0) =>
   hdkey.fromMasterSeed(Buffer.from(seed, 'hex'))

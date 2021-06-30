@@ -20,4 +20,8 @@ MockProvider.prototype.send = function (payload, callback) {
   }, this._delay)
 }
 
+MockProvider.prototype.on = function() {
+  console.warn('Suscriptions mocked but not implemented.')
+}
+
 module.exports = MockProvider

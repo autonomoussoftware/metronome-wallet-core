@@ -3,7 +3,6 @@
 const { debounce, groupBy, merge, noop, reduce } = require('lodash')
 const debug = require('debug')('met-wallet:core:explorer:queue')
 const getTransactionStatus = require('./transaction-status')
-const pDefer = require('p-defer')
 const promiseAllProps = require('promise-all-props')
 
 function createQueue (config, eventBus, web3) {
@@ -105,19 +104,17 @@ function createQueue (config, eventBus, web3) {
     function (hash) {
       debug('Queueing transaction', hash)
 
-      const deferred = pDefer()
-
-      const event = {
-        address,
-        event: { transactionHash: hash },
-        metaParser: () => (meta || {}),
-        done: err => err ? deferred.reject(err) : deferred.resolve()
-      }
-      pendingEvents.push(event)
-
-      debouncedEmitPendingEvents(address)
-
-      return deferred.promise
+      return new Promise(function (resolve, reject) {
+        const event = {
+          address,
+          event: { transactionHash: hash },
+          metaParser: () => (meta || {}),
+          done: err => err ? reject(err) : resolve()
+        }
+        pendingEvents.push(event)
+  
+        debouncedEmitPendingEvents(address)
+      })
     }
 
   eventBus.on('open-wallets', function ({ activeWallet }) {
@@ -126,15 +123,15 @@ function createQueue (config, eventBus, web3) {
 
   const addEvent = (address, metaParser) => function (event) {
     debug('Queueing event', event.event)
-    const deferred = pDefer()
-    pendingEvents.push({
-      address,
-      event,
-      metaParser,
-      done: err => err ? deferred.reject(err) : deferred.resolve()
+    return new Promise(function (resolve, reject) {
+      pendingEvents.push({
+        address,
+        event,
+        done: err => err ? reject(err) : resolve(),
+        metaParser,
+      })
+      debouncedEmitPendingEvents(address)
     })
-    debouncedEmitPendingEvents(address)
-    return deferred.promise
   }
 
   return {

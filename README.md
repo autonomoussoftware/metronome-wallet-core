@@ -8,6 +8,8 @@ The core logic has a modular design where each module or plugin can emit events 
 
 ## Quick start
 
+Minimum Node version required is v12, recommended is v14
+
 ```js
 const createCore = require('metronome-wallet-core')
 

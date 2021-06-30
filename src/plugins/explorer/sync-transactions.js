@@ -5,25 +5,22 @@ const debug = require('debug')('met-wallet:core:explorer:syncer')
 const pAll = require('p-all')
 const pWhilst = require('p-whilst')
 const pTimeout = require('p-timeout')
-const pDefer = require('p-defer')
 const noop = require('lodash/noop')
 
 // eslint-disable-next-line max-params
 function createSyncer (config, eventBus, web3, queue, eventsRegistry, indexer) {
   debug.enabled = config.debug
 
-  const deferred = pDefer()
-  const gotBestBlockPromise = deferred.promise
-
   let bestBlock
+  const gotBestBlockPromise = new Promise(function (resolve) {
+    eventBus.once('coin-block', function (header) {
+      bestBlock = header.number
+      debug('Got best block', bestBlock)
+      resolve(bestBlock)
+    })
+  })
 
   const { getTransactions, getTransactionStream } = indexer
-
-  eventBus.once('coin-block', function (header) {
-    bestBlock = header.number
-    debug('Got best block', bestBlock)
-    deferred.resolve()
-  })
 
   function subscribeCoinTransactions (fromBlock, address) {
     let shallResync = false

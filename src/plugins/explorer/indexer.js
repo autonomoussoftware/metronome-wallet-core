@@ -34,9 +34,9 @@ function createIndexer (config, eventBus) {
     jar = new CookieJar()
     axios = axiosCookieJarSupport(createAxios(({
       baseURL: indexerUrl,
-      jar,
       withCredentials: true
     })))
+    axios.defaults.jar = jar
   }
 
   const getBestBlock = () =>
