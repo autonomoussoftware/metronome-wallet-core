@@ -36,7 +36,6 @@
     "metronome-contracts": "^2.5.0",
     "metronome-sdk-status": "^1.2.1",
     "p-all": "^3.0.0",
-    "p-defer": "3.0.0",
     "p-retry": "^4.6.0",
     "p-timeout": "^4.1.0",
     "p-whilst": "^2.0.0",
