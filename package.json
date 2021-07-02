@@ -30,7 +30,7 @@
     "axios": "0.21.1",
     "axios-cookiejar-support": "^1.0.1",
     "debug": "^4.1.1",
-    "ethereumjs-wallet": "1.0.1",
+    "ethereumjs-wallet": "^1.0.1",
     "lodash": "^4.17.15",
     "merkletreejs": "0.0.25",
     "metronome-contracts": "^2.5.0",
@@ -42,9 +42,9 @@
     "patch-package": "^5.1.1",
     "promise-all-props": "^1.0.1",
     "safe-exchange-rate": "^1.0.0",
-    "socket.io-client": "2.1.1",
+    "socket.io-client": "^2.1.1",
     "tough-cookie": "^2.5.0",
-    "web3": "1.3.6",
+    "web3": "^1.3.6",
     "websocket-reconnector": "^1.1.1"
   },
   "devDependencies": {
